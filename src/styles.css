@@ -80,9 +80,10 @@ textarea {
 }
 
 .run-button,
-.palette-item {
+.palette-item,
+.secondary-button,
+.danger-button {
   display: flex;
-  width: 100%;
   align-items: center;
   gap: 9px;
   border: 1px solid #3f3f46;
@@ -93,6 +94,7 @@ textarea {
 }
 
 .run-button {
+  width: 100%;
   justify-content: center;
   padding: 11px 12px;
   border-color: #16a34a;
@@ -103,6 +105,37 @@ textarea {
 .run-button:disabled {
   cursor: progress;
   opacity: 0.75;
+}
+
+.canvas-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: -12px;
+}
+
+.secondary-button,
+.danger-button {
+  justify-content: center;
+  padding: 9px 10px;
+  background: #18181b;
+}
+
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.danger-button {
+  width: 100%;
+  border-color: #7f1d1d;
+  color: #fecaca;
+}
+
+.secondary-button:hover,
+.danger-button:hover {
+  border-color: #71717a;
+  background: #202024;
 }
 
 .palette-section {
@@ -125,6 +158,7 @@ textarea {
 }
 
 .palette-item {
+  width: 100%;
   justify-content: flex-start;
   padding: 10px;
   text-align: left;
@@ -313,6 +347,12 @@ textarea {
 .field input:focus,
 .field textarea:focus {
   border-color: #22c55e;
+}
+
+.field-help {
+  color: #71717a;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .output-panel {

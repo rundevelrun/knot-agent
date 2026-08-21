@@ -27,46 +27,53 @@ interface CanvasState {
   addNode: (type: NodeType, data: KnotNodeData) => void;
   updateNodeData: (id: string, data: Partial<KnotNodeData>) => void;
   appendNodeOutput: (id: string, chunk: string) => void;
+  deleteNode: (id: string) => void;
+  newCanvas: () => void;
+  loadExamplePipeline: () => void;
   setSelectedNode: (id?: string) => void;
   setIsRunning: (isRunning: boolean) => void;
 }
 
-const initialNodes: KnotNode[] = [
-  {
-    id: 'input-1',
-    type: 'input',
-    position: { x: 40, y: 120 },
-    data: createInputNodeData(),
-  },
-  {
-    id: 'cli-agy-1',
-    type: 'cli_agent',
-    position: { x: 360, y: 40 },
-    data: createCliNodeData(cliPresets[0]),
-  },
-  {
-    id: 'cli-codex-1',
-    type: 'cli_agent',
-    position: { x: 680, y: 120 },
-    data: createCliNodeData(cliPresets[2]),
-  },
-  {
-    id: 'output-1',
-    type: 'markdown_output',
-    position: { x: 1000, y: 120 },
-    data: createMarkdownOutputNodeData(),
-  },
-];
+function createExampleNodes(): KnotNode[] {
+  return [
+    {
+      id: 'input-1',
+      type: 'input',
+      position: { x: 40, y: 120 },
+      data: createInputNodeData(),
+    },
+    {
+      id: 'cli-agy-1',
+      type: 'cli_agent',
+      position: { x: 360, y: 40 },
+      data: createCliNodeData(cliPresets[0]),
+    },
+    {
+      id: 'cli-codex-1',
+      type: 'cli_agent',
+      position: { x: 680, y: 120 },
+      data: createCliNodeData(cliPresets[2]),
+    },
+    {
+      id: 'output-1',
+      type: 'markdown_output',
+      position: { x: 1000, y: 120 },
+      data: createMarkdownOutputNodeData(),
+    },
+  ];
+}
 
-const initialEdges: KnotEdge[] = [
-  { id: 'input-1-cli-agy-1', source: 'input-1', target: 'cli-agy-1' },
-  { id: 'cli-agy-1-cli-codex-1', source: 'cli-agy-1', target: 'cli-codex-1' },
-  { id: 'cli-codex-1-output-1', source: 'cli-codex-1', target: 'output-1' },
-];
+function createExampleEdges(): KnotEdge[] {
+  return [
+    { id: 'input-1-cli-agy-1', source: 'input-1', target: 'cli-agy-1' },
+    { id: 'cli-agy-1-cli-codex-1', source: 'cli-agy-1', target: 'cli-codex-1' },
+    { id: 'cli-codex-1-output-1', source: 'cli-codex-1', target: 'output-1' },
+  ];
+}
 
 export const useCanvasStore = create<CanvasState>((set) => ({
-  nodes: initialNodes,
-  edges: initialEdges,
+  nodes: createExampleNodes(),
+  edges: createExampleEdges(),
   selectedNodeId: undefined,
   isRunning: false,
   onNodesChange: (changes) => {
@@ -122,6 +129,29 @@ export const useCanvasStore = create<CanvasState>((set) => ({
         };
       }),
     }));
+  },
+  deleteNode: (id) => {
+    set((state) => ({
+      nodes: state.nodes.filter((node) => node.id !== id),
+      edges: state.edges.filter((edge) => edge.source !== id && edge.target !== id),
+      selectedNodeId: state.selectedNodeId === id ? undefined : state.selectedNodeId,
+    }));
+  },
+  newCanvas: () => {
+    set({
+      nodes: [],
+      edges: [],
+      selectedNodeId: undefined,
+      isRunning: false,
+    });
+  },
+  loadExamplePipeline: () => {
+    set({
+      nodes: createExampleNodes(),
+      edges: createExampleEdges(),
+      selectedNodeId: undefined,
+      isRunning: false,
+    });
   },
   setSelectedNode: (selectedNodeId) => set({ selectedNodeId }),
   setIsRunning: (isRunning) => set({ isRunning }),

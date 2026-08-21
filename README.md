@@ -14,7 +14,7 @@ Example:
 
 ```text
 Feature spec
-  -> agy plans the architecture
+  -> agy -p plans the architecture
   -> claude writes an initial implementation
   -> codex reviews or refactors it
   -> ollama summarizes the result locally
@@ -147,16 +147,33 @@ CLI nodes currently expose:
 - working directory
 - live output
 
-Arguments can use `{{input}}`, which is replaced with upstream node output.
+Arguments are edited one per line. Each line becomes one CLI argument.
+
+Arguments can use `{{input}}`, which is replaced with upstream node output as a single argument.
 
 Example:
 
 ```text
 Command: codex
-Arguments: exec {{input}}
+Arguments:
+exec
+{{input}}
 ```
 
 Custom CLIs can be tested by editing an existing CLI node's command and arguments in the inspector.
+
+Use **New** to clear the canvas. Use **Example** to restore the default input -> Antigravity -> Codex -> markdown pipeline.
+
+The default Antigravity node uses headless mode:
+
+```text
+Command: agy
+Arguments:
+-p
+{{input}}
+--print-timeout
+90s
+```
 
 ## Roadmap
 

@@ -17,25 +17,25 @@ interface CLIPreset {
 export const cliPresets: CLIPreset[] = [
   {
     agentType: 'agy',
-    label: 'AGY Architect',
+    label: 'Antigravity (Gemini)',
     command: 'agy',
-    args: ['{{input}}'],
+    args: ['-p', '{{input}}', '--print-timeout', '90s'],
   },
   {
     agentType: 'claude',
-    label: 'Claude Code Builder',
+    label: 'Claude',
     command: 'claude',
     args: ['-p', '{{input}}'],
   },
   {
     agentType: 'codex',
-    label: 'Codex Reviewer',
+    label: 'Codex',
     command: 'codex',
     args: ['exec', '{{input}}'],
   },
   {
     agentType: 'gh',
-    label: 'GitHub CLI',
+    label: 'GitHub',
     command: 'gh',
     args: ['issue', 'list'],
   },

@@ -12,10 +12,12 @@ import {
   Cloud,
   FileText,
   GitBranch,
+  RotateCcw,
   Play,
   Plus,
   Server,
   SquareTerminal,
+  Trash2,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { cliPresets, createCliNodeData, createCloudAPINodeData, createInputNodeData, createLocalLLMNodeData, createMarkdownOutputNodeData } from './data/nodePresets';
@@ -49,6 +51,8 @@ export function App() {
     onEdgesChange,
     onConnect,
     addNode,
+    newCanvas,
+    loadExamplePipeline,
     updateNodeData,
     setSelectedNode,
     setIsRunning,
@@ -67,6 +71,8 @@ export function App() {
     setIsRunning(true);
     try {
       await executeMultiAgentPipeline(nodes, edges, updateNodeData);
+    } catch (error) {
+      console.error('Pipeline execution failed', error);
     } finally {
       setIsRunning(false);
     }
@@ -96,6 +102,17 @@ export function App() {
           <Play size={16} />
           {isRunning ? 'Running pipeline' : 'Run pipeline'}
         </button>
+
+        <div className="canvas-actions">
+          <button className="secondary-button" disabled={isRunning} onClick={newCanvas}>
+            <Plus size={15} />
+            New
+          </button>
+          <button className="secondary-button" disabled={isRunning} onClick={loadExamplePipeline}>
+            <RotateCcw size={15} />
+            Example
+          </button>
+        </div>
 
         <section className="palette-section">
           <h2>CLI Agents</h2>
@@ -168,6 +185,7 @@ function PaletteButton({
 
 function Inspector({ selectedNode }: { selectedNode?: KnotNode }) {
   const updateNodeData = useCanvasStore((state) => state.updateNodeData);
+  const deleteNode = useCanvasStore((state) => state.deleteNode);
 
   if (!selectedNode) {
     return (
@@ -187,6 +205,11 @@ function Inspector({ selectedNode }: { selectedNode?: KnotNode }) {
         <span className="node-kind">{selectedNode.type}</span>
         <h2>{selectedNode.data.label}</h2>
       </div>
+
+      <button className="danger-button" onClick={() => deleteNode(selectedNode.id)}>
+        <Trash2 size={15} />
+        Delete node
+      </button>
 
       <label className="field">
         <span>Label</span>
@@ -218,14 +241,19 @@ function Inspector({ selectedNode }: { selectedNode?: KnotNode }) {
           </label>
           <label className="field">
             <span>Arguments</span>
-            <input
-              value={(selectedNode.data.args as string[]).join(' ')}
+            <textarea
+              rows={5}
+              value={(selectedNode.data.args as string[]).join('\n')}
               onChange={(event) =>
                 updateNodeData(selectedNode.id, {
-                  args: event.target.value.split(' ').filter(Boolean),
+                  args: event.target.value
+                    .split('\n')
+                    .map((line) => line.trim())
+                    .filter(Boolean),
                 })
               }
             />
+            <small className="field-help">One argument per line. Use {'{{input}}'} for upstream output.</small>
           </label>
           <label className="field">
             <span>Working directory</span>

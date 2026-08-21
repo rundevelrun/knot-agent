@@ -14,7 +14,7 @@ KnotAgent에서는 AI 도구를 캔버스 위 노드로 올리고, 노드끼리 
 
 ```text
 기능 스펙
-  -> agy가 아키텍처 계획
+  -> agy -p가 아키텍처 계획
   -> claude가 초기 구현 작성
   -> codex가 리뷰 또는 리팩터링
   -> ollama가 결과를 로컬에서 요약
@@ -147,16 +147,33 @@ CLI 노드는 현재 다음 값을 편집할 수 있습니다.
 - working directory
 - live output
 
-arguments에는 `{{input}}`을 사용할 수 있고, 이 값은 상위 노드 출력으로 치환됩니다.
+arguments는 한 줄에 하나씩 편집합니다. 각 줄은 하나의 CLI argument가 됩니다.
+
+arguments에는 `{{input}}`을 사용할 수 있고, 이 값은 상위 노드 출력으로 하나의 argument로 치환됩니다.
 
 예:
 
 ```text
 Command: codex
-Arguments: exec {{input}}
+Arguments:
+exec
+{{input}}
 ```
 
 Custom CLI는 기존 CLI 노드의 command와 arguments를 inspector에서 바꿔서 테스트할 수 있습니다.
+
+**New**는 캔버스를 비웁니다. **Example**은 기본 input -> Antigravity -> Codex -> markdown 파이프라인을 다시 불러옵니다.
+
+기본 Antigravity 노드는 headless mode를 사용합니다.
+
+```text
+Command: agy
+Arguments:
+-p
+{{input}}
+--print-timeout
+90s
+```
 
 ## 로드맵
 
