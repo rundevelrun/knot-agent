@@ -42,8 +42,8 @@ interface CanvasState {
   onNodesChange: (changes: NodeChange<KnotNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<KnotEdge>[]) => void;
   onConnect: (connection: Connection) => void;
-  addNode: (type: NodeType, data: KnotNodeData) => void;
-  addConnectedNode: (sourceId: string, type: NodeType, data: KnotNodeData) => void;
+  addNode: (type: NodeType, data: KnotNodeData, position?: { x: number; y: number }) => void;
+  addConnectedNode: (sourceId: string, type: NodeType, data: KnotNodeData, position?: { x: number; y: number }) => void;
   updateNodeData: (id: string, data: Partial<KnotNodeData>) => void;
   appendNodeOutput: (id: string, chunk: string) => void;
   deleteNode: (id: string) => void;
@@ -267,14 +267,14 @@ export const useCanvasStore = create<CanvasState>((set) => ({
       return syncActiveTab(state, { edges });
     });
   },
-  addNode: (type, data) => {
+  addNode: (type, data, position) => {
     set((state) => {
       const nodes: KnotNode[] = [
         ...state.nodes,
         {
           id: `${type}-${crypto.randomUUID()}`,
           type,
-          position: {
+          position: position ?? {
             x: 160 + state.nodes.length * 36,
             y: 160 + state.nodes.length * 24,
           },
@@ -284,7 +284,7 @@ export const useCanvasStore = create<CanvasState>((set) => ({
       return syncActiveTab(state, { nodes });
     });
   },
-  addConnectedNode: (sourceId, type, data) => {
+  addConnectedNode: (sourceId, type, data, position) => {
     set((state) => {
       const sourceNode = state.nodes.find((node) => node.id === sourceId);
       if (!sourceNode) return {};
@@ -294,7 +294,7 @@ export const useCanvasStore = create<CanvasState>((set) => ({
       const targetNode: KnotNode = {
         id: nodeId,
         type,
-        position: {
+        position: position ?? {
           x: sourceNode.position.x + 320,
           y: sourceNode.position.y + siblingCount * 150,
         },

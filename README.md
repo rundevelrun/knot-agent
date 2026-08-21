@@ -174,7 +174,7 @@ Multiple workflows can be open at the same time as tabs. Run and Save operate on
 
 The left sidebar is a workflow tree. Open a workflow, choose **Overview** to edit its goal and constraints, or choose **Canvas** to return to the visual workflow.
 
-Use the canvas toolbar **Add Node** button to add CLI agents or an Input node to the active workflow. If a node is selected, the button becomes **Add Next** and the new node is connected after the selected node automatically.
+Use the canvas toolbar **Add Node** button to add CLI agents or an Input node to the active workflow. If a node is selected, the button becomes **Add Next** and the new node is connected after the selected node automatically. New nodes are placed inside the current canvas viewport.
 
 The default Antigravity node uses headless mode:
 
@@ -203,7 +203,7 @@ Shortcuts:
 - `Ctrl/Cmd + N`: open a new blank workflow tab
 - `Delete` / `Backspace`: delete selected nodes or edges
 
-Local LLM, Cloud API, and Markdown Output nodes still exist internally for existing workflows and examples, but only Input is exposed in the Core Nodes add menu until those nodes are fully implemented.
+Local LLM, Cloud API, and Markdown Output nodes still exist internally for existing workflows and examples, but only Input is exposed in the Core Nodes add menu until those nodes are fully implemented. Ollama will be exposed once the node performs a real local HTTP call instead of a placeholder pass-through.
 
 Markdown Output renders a safe subset of markdown, including headings, lists, inline code, bold text, and fenced code blocks.
 

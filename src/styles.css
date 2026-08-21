@@ -500,6 +500,19 @@ textarea {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
+.react-flow__node {
+  background: transparent !important;
+}
+
+.react-flow__node-input,
+.react-flow__node-default,
+.react-flow__node-output {
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
 .cli-node {
   border-color: #2563eb;
 }
@@ -617,6 +630,7 @@ textarea {
 }
 
 .node-text {
+  background: transparent;
   padding: 11px 12px 14px;
   -webkit-line-clamp: 5;
 }

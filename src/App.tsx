@@ -5,7 +5,9 @@ import {
   Controls,
   MiniMap,
   ReactFlow,
+  ReactFlowProvider,
   type NodeMouseHandler,
+  useReactFlow,
 } from '@xyflow/react';
 import {
   FolderOpen,
@@ -44,7 +46,16 @@ type InspectorMode = 'workflow' | 'node' | undefined;
 type VisibleCoreNodeType = Extract<NodeType, 'input'>;
 
 export function App() {
+  return (
+    <ReactFlowProvider>
+      <KnotAgentApp />
+    </ReactFlowProvider>
+  );
+}
+
+function KnotAgentApp() {
   useCliStream();
+  const reactFlow = useReactFlow();
   const [inspectorMode, setInspectorMode] = useState<InspectorMode>();
   const [addMenuOpen, setAddMenuOpen] = useState(false);
 
@@ -131,12 +142,44 @@ export function App() {
 
   function addNodeToCanvas(type: NodeType, data: KnotNode['data']) {
     if (selectedNodeId) {
-      addConnectedNode(selectedNodeId, type, data);
+      addConnectedNode(selectedNodeId, type, data, getNextNodePosition());
       setInspectorMode('node');
       return;
     }
 
-    addNode(type, data);
+    addNode(type, data, getViewportCenterPosition());
+  }
+
+  function getViewportCenterPosition() {
+    const wrapper = document.querySelector('.flow-area');
+    const rect = wrapper?.getBoundingClientRect();
+    const point = reactFlow.screenToFlowPosition({
+      x: (rect?.left ?? 0) + (rect?.width ?? window.innerWidth) / 2,
+      y: (rect?.top ?? 0) + (rect?.height ?? window.innerHeight) / 2,
+    });
+    return { x: point.x - 125, y: point.y - 60 };
+  }
+
+  function getNextNodePosition() {
+    const sourceNode = nodes.find((node) => node.id === selectedNodeId);
+    if (!sourceNode) return getViewportCenterPosition();
+
+    const siblingCount = edges.filter((edge) => edge.source === sourceNode.id).length;
+    const desired = {
+      x: sourceNode.position.x + 320,
+      y: sourceNode.position.y + siblingCount * 150,
+    };
+
+    const center = getViewportCenterPosition();
+    const viewport = reactFlow.getViewport();
+    const wrapper = document.querySelector('.flow-area');
+    const rect = wrapper?.getBoundingClientRect();
+    const visibleWidth = (rect?.width ?? window.innerWidth) / viewport.zoom;
+    const visibleHeight = (rect?.height ?? window.innerHeight) / viewport.zoom;
+    return {
+      x: clamp(desired.x, center.x - visibleWidth / 2 + 40, center.x + visibleWidth / 2 - 280),
+      y: clamp(desired.y, center.y - visibleHeight / 2 + 40, center.y + visibleHeight / 2 - 160),
+    };
   }
 
   return (
@@ -302,6 +345,11 @@ export function App() {
       />
     </div>
   );
+}
+
+function clamp(value: number, min: number, max: number) {
+  if (min > max) return value;
+  return Math.min(Math.max(value, min), max);
 }
 
 function Inspector({
