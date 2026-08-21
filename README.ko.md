@@ -174,7 +174,7 @@ Custom CLI는 기존 CLI 노드의 command와 arguments를 inspector에서 바�
 
 왼쪽 사이드바는 workflow tree입니다. 워크플로를 연 뒤 **Overview**에서 goal과 constraints를 편집하고, **Canvas**에서 실제 workflow 화면으로 돌아갑니다.
 
-캔버스 상단 **Add Node** 버튼으로 활성 workflow에 CLI agent나 core node를 추가합니다.
+캔버스 상단 **Add Node** 버튼으로 활성 workflow에 CLI agent나 core node를 추가합니다. 노드가 선택된 상태에서는 버튼이 **Add Next**로 바뀌고, 새 노드를 선택 노드 뒤에 자동으로 연결합니다.
 
 기본 Antigravity 노드는 headless mode를 사용합니다.
 
@@ -190,6 +190,8 @@ Arguments:
 ## 노드 연결
 
 노드 오른쪽 handle에서 다른 노드 왼쪽 handle로 드래그하면 연결됩니다.
+
+더 쉬운 방식은 노드를 선택한 뒤 **Add Next**를 사용하는 것입니다. KnotAgent가 새 노드를 오른쪽에 배치하고 edge를 자동으로 만듭니다.
 
 `Run pipeline`을 누르면 KnotAgent는 그래프를 DAG 순서로 실행하고, 상위 노드 출력을 다음 노드 입력으로 넘깁니다. 여러 상위 노드가 연결되어 있으면 출력들을 합쳐서 하위 노드로 전달합니다.
 

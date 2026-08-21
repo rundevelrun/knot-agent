@@ -43,6 +43,7 @@ interface CanvasState {
   onEdgesChange: (changes: EdgeChange<KnotEdge>[]) => void;
   onConnect: (connection: Connection) => void;
   addNode: (type: NodeType, data: KnotNodeData) => void;
+  addConnectedNode: (sourceId: string, type: NodeType, data: KnotNodeData) => void;
   updateNodeData: (id: string, data: Partial<KnotNodeData>) => void;
   appendNodeOutput: (id: string, chunk: string) => void;
   deleteNode: (id: string) => void;
@@ -274,6 +275,39 @@ export const useCanvasStore = create<CanvasState>((set) => ({
         },
       ];
       return syncActiveTab(state, { nodes });
+    });
+  },
+  addConnectedNode: (sourceId, type, data) => {
+    set((state) => {
+      const sourceNode = state.nodes.find((node) => node.id === sourceId);
+      if (!sourceNode) return {};
+
+      const nodeId = `${type}-${crypto.randomUUID()}`;
+      const siblingCount = state.edges.filter((edge) => edge.source === sourceId).length;
+      const targetNode: KnotNode = {
+        id: nodeId,
+        type,
+        position: {
+          x: sourceNode.position.x + 320,
+          y: sourceNode.position.y + siblingCount * 150,
+        },
+        data,
+      };
+      const nodes = [...state.nodes, targetNode];
+      const edges = addEdge(
+        {
+          id: `${sourceId}-${nodeId}`,
+          source: sourceId,
+          target: nodeId,
+          animated: true,
+        },
+        state.edges,
+      );
+
+      return {
+        ...syncActiveTab(state, { nodes, edges }),
+        selectedNodeId: nodeId,
+      };
     });
   },
   updateNodeData: (id, data) => {

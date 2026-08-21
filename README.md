@@ -174,7 +174,7 @@ Multiple workflows can be open at the same time as tabs. Run and Save operate on
 
 The left sidebar is a workflow tree. Open a workflow, choose **Overview** to edit its goal and constraints, or choose **Canvas** to return to the visual workflow.
 
-Use the canvas toolbar **Add Node** button to add CLI agents or core nodes to the active workflow.
+Use the canvas toolbar **Add Node** button to add CLI agents or core nodes to the active workflow. If a node is selected, the button becomes **Add Next** and the new node is connected after the selected node automatically.
 
 The default Antigravity node uses headless mode:
 
@@ -190,6 +190,8 @@ Arguments:
 ## Connecting Nodes
 
 Drag from a node's right handle to another node's left handle to connect them.
+
+For the easier path, select a node and use **Add Next**. KnotAgent will place the new node to the right and create the edge for you.
 
 On `Run pipeline`, KnotAgent executes the graph in DAG order and passes each upstream output into the next node. Multiple parent outputs are joined before being passed downstream.
 

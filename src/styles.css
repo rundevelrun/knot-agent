@@ -433,6 +433,16 @@ textarea {
   text-transform: uppercase;
 }
 
+.add-menu-hint {
+  margin: 2px 2px 6px;
+  border: 1px solid #14532d;
+  border-radius: 6px;
+  padding: 7px 8px;
+  color: #86efac;
+  background: #052e16;
+  font-size: 11px;
+}
+
 .add-menu button {
   display: flex;
   align-items: center;

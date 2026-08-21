@@ -44,6 +44,7 @@ const nodeTypes = {
 };
 
 type InspectorMode = 'workflow' | 'node' | undefined;
+type CoreNodeType = Exclude<NodeType, 'cli_agent'>;
 
 export function App() {
   useCliStream();
@@ -65,6 +66,7 @@ export function App() {
     onEdgesChange,
     onConnect,
     addNode,
+    addConnectedNode,
     newCanvas,
     saveWorkflow,
     openWorkflow,
@@ -119,12 +121,28 @@ export function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isRunning, newCanvas, saveWorkflow]);
 
-  function addPresetNode(type: NodeType) {
-    if (type === 'input') addNode(type, createInputNodeData());
-    if (type === 'local_llm') addNode(type, createLocalLLMNodeData());
-    if (type === 'cloud_api') addNode(type, createCloudAPINodeData());
-    if (type === 'markdown_output') addNode(type, createMarkdownOutputNodeData());
+  function addPresetNode(type: CoreNodeType) {
+    const dataByType = {
+      input: createInputNodeData,
+      local_llm: createLocalLLMNodeData,
+      cloud_api: createCloudAPINodeData,
+      markdown_output: createMarkdownOutputNodeData,
+    } satisfies Record<CoreNodeType, () => KnotNode['data']>;
+    const createData = dataByType[type];
+    if (!createData) return;
+
+    addNodeToCanvas(type, createData());
     setAddMenuOpen(false);
+  }
+
+  function addNodeToCanvas(type: NodeType, data: KnotNode['data']) {
+    if (selectedNodeId) {
+      addConnectedNode(selectedNodeId, type, data);
+      setInspectorMode('node');
+      return;
+    }
+
+    addNode(type, data);
   }
 
   return (
@@ -213,16 +231,17 @@ export function App() {
             <div className="add-menu-wrap">
               <button className="secondary-button" onClick={() => setAddMenuOpen((open) => !open)}>
                 <Plus size={15} />
-                Add Node
+                {selectedNodeId ? 'Add Next' : 'Add Node'}
               </button>
               {addMenuOpen && (
                 <div className="add-menu">
+                  {selectedNodeId && <div className="add-menu-hint">Connect after selected node</div>}
                   <div className="add-menu-section">CLI Agents</div>
                   {cliPresets.map((preset) => (
                     <button
                       key={preset.agentType}
                       onClick={() => {
-                        addNode('cli_agent', createCliNodeData(preset));
+                        addNodeToCanvas('cli_agent', createCliNodeData(preset));
                         setAddMenuOpen(false);
                       }}
                     >
@@ -262,7 +281,7 @@ export function App() {
         </div>
 
         <div className="canvas-help">
-          Drag from a right handle to a left handle to connect nodes. Select nodes or edges and press Delete.
+          Select a node, then use Add Next to create and connect the next step. Drag handles for manual connections.
         </div>
 
         <div className="flow-area">
