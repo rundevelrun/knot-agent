@@ -47,6 +47,22 @@ The UI can run in a browser with Vite. CLI execution requires the Tauri desktop 
 - Zustand
 - Rust subprocess execution
 
+## Platform Support
+
+KnotAgent is developed primarily for Windows and macOS.
+
+Linux support is planned as best-effort because Tauri works on Linux, but native WebView and system package requirements vary by distribution.
+
+Mobile is not a local execution target. KnotAgent is designed around desktop CLI tools, local repositories, and terminal sessions.
+
+## Remote Direction
+
+A future mobile or web client may act as a remote control surface for an online Windows or macOS KnotAgent desktop host.
+
+In that model, the desktop app runs the actual CLI agents and local tools. The mobile or web client would sign in with the same account, show available desktop hosts, edit canvases, start runs, approve actions, and stream logs remotely.
+
+Remote access will require explicit host pairing, authentication, action approval, and audit logs before it is treated as a supported feature.
+
 ## Run Locally
 
 Install dependencies:
@@ -150,6 +166,8 @@ Custom CLIs can be tested by editing an existing CLI node's command and argument
 - Cloud API nodes for OpenAI, Anthropic, and Gemini
 - Save and load canvas files
 - Workflow templates
+- Remote desktop host registration
+- Mobile and web remote control clients
 - Packaged desktop releases
 
 ## License
