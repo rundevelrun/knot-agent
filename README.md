@@ -175,6 +175,16 @@ Arguments:
 90s
 ```
 
+## Connecting Nodes
+
+Drag from a node's right handle to another node's left handle to connect them.
+
+On `Run pipeline`, KnotAgent executes the graph in DAG order and passes each upstream output into the next node. Multiple parent outputs are joined before being passed downstream.
+
+Local LLM and Cloud API nodes are currently connectable placeholders. They show how data will flow through the canvas, but real Ollama / LM Studio / OpenAI / Anthropic calls are still on the roadmap.
+
+Markdown Output renders a safe subset of markdown, including headings, lists, inline code, bold text, and fenced code blocks.
+
 ## Roadmap
 
 - Better custom CLI node editor

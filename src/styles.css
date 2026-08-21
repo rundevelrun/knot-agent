@@ -275,6 +275,57 @@ textarea {
   -webkit-line-clamp: 6;
 }
 
+.markdown-preview {
+  display: block;
+  white-space: normal;
+}
+
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3,
+.markdown-preview p,
+.markdown-preview ul,
+.markdown-preview pre {
+  margin: 0 0 8px;
+}
+
+.markdown-preview h1 {
+  font-size: 15px;
+}
+
+.markdown-preview h2 {
+  font-size: 14px;
+}
+
+.markdown-preview h3,
+.markdown-preview p,
+.markdown-preview li {
+  font-size: 12px;
+}
+
+.markdown-preview ul {
+  padding-left: 16px;
+}
+
+.markdown-preview code {
+  border-radius: 4px;
+  padding: 1px 4px;
+  background: #27272a;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+.markdown-preview pre {
+  overflow: hidden;
+  border-radius: 6px;
+  padding: 8px;
+  background: #09090b;
+}
+
+.markdown-preview pre code {
+  padding: 0;
+  background: transparent;
+}
+
 .node-text {
   padding: 11px 12px 14px;
   -webkit-line-clamp: 5;

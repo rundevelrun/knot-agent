@@ -175,6 +175,16 @@ Arguments:
 90s
 ```
 
+## 노드 연결
+
+노드 오른쪽 handle에서 다른 노드 왼쪽 handle로 드래그하면 연결됩니다.
+
+`Run pipeline`을 누르면 KnotAgent는 그래프를 DAG 순서로 실행하고, 상위 노드 출력을 다음 노드 입력으로 넘깁니다. 여러 상위 노드가 연결되어 있으면 출력들을 합쳐서 하위 노드로 전달합니다.
+
+Local LLM과 Cloud API 노드는 현재 연결 가능한 placeholder입니다. 캔버스에서 데이터가 어떻게 흐를지 보여주지만, 실제 Ollama / LM Studio / OpenAI / Anthropic 호출은 아직 로드맵 단계입니다.
+
+Markdown Output은 heading, list, inline code, bold text, fenced code block 같은 안전한 subset의 markdown을 렌더링합니다.
+
 ## 로드맵
 
 - 더 나은 custom CLI 노드 편집기

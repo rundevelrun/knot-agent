@@ -14,7 +14,7 @@ export function LocalLLMNode({ data }: NodeProps) {
         {nodeData.isExecuting && <Loader2 className="spin" size={14} />}
       </div>
       <div className="node-meta">{nodeData.engine} · {nodeData.model}</div>
-      <pre className="node-output">{nodeData.streamingOutput || nodeData.baseUrl}</pre>
+      <pre className="node-output">{nodeData.streamingOutput || `Connectable placeholder\n${nodeData.baseUrl}`}</pre>
       <Handle type="source" position={Position.Right} />
     </div>
   );
