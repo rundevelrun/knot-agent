@@ -1,225 +1,53 @@
 # KnotAgent
 
-**KnotAgent** is a lightweight universal visual desktop canvas for orchestrating terminal-based AI CLI agents, local LLM engines, and cloud AI APIs in one extensible node workflow.
+KnotAgent is a desktop canvas for wiring terminal AI agents together.
 
-> Korean documentation: [README.ko.md](./README.ko.md)
+It is built for workflows where tools like `claude`, `codex`, `agy`, `gh`, Ollama, and cloud LLM APIs need to pass work to each other without turning everything into one vendor-specific platform.
 
-## Vision
+> Korean README: [README.ko.md](./README.ko.md)
 
-KnotAgent treats AI tools as composable execution nodes. Instead of locking workflows into one vendor or one API style, it lets developers chain terminal AI agents such as `claude`, `codex`, `agy` / Gemini CLI, and `gh` together with local inference servers like Ollama, LM Studio, vLLM, and cloud providers such as Anthropic, OpenAI, and Google Gemini.
+## What It Does
 
-The core idea is simple: if an AI tool can run from the terminal, it should be a first-class node on a visual canvas.
+KnotAgent lets you place AI tools on a visual canvas and connect them as a pipeline.
 
-## Core Goals
-
-- Build a universal visual node canvas for multi-agent AI workflows.
-- Treat terminal AI agents as first-class execution nodes.
-- Support local OAuth-backed CLI sessions without forcing manual API key setup for every workflow.
-- Stream `stdout` and `stderr` from long-running CLI agents in real time.
-- Chain CLI agents, local LLMs, cloud APIs, and I/O utilities through a common pipeline schema.
-- Avoid vendor lock-in by keeping node execution extensible and provider-neutral.
-
-## Target Users
-
-- Power developers
-- AI agent engineers
-- Multi-agent workflow builders
-- Developers experimenting with local and cloud LLM orchestration
-- Teams that want visual automation without giving up terminal-native tools
-
-## Node Taxonomy
-
-KnotAgent standardizes execution units into five major node families:
-
-| Node Type | Examples | Purpose |
-| --- | --- | --- |
-| CLI Agent Node | `claude`, `codex`, `agy`, `gh`, custom binaries | Run terminal AI agents and developer CLIs through local subprocesses. |
-| Local LLM Node | Ollama, LM Studio, vLLM, LocalAI | Call local inference servers through HTTP-compatible APIs. |
-| Cloud API Node | Anthropic, OpenAI, Google Gemini | Use hosted AI APIs where cloud execution is preferred. |
-| Input Node | Text input, file input | Provide prompts, specs, files, and raw data to workflows. |
-| Output Node | Markdown preview, terminal viewer | Render final output, logs, and generated documentation. |
-
-## Example Workflow
+Example:
 
 ```text
-[Input: Feature Spec]
-       |
-       +------------------------------+
-       |                              |
-       v                              v
-[agy: Architecture Plan]      [claude: Initial Code]
-       |                              |
-       +--------------+---------------+
-                      v
-            [codex: Refactor & Review]
-                      |
-                      v
-            [ollama: Local Docs Summary]
+Feature spec
+  -> agy plans the architecture
+  -> claude writes an initial implementation
+  -> codex reviews or refactors it
+  -> ollama summarizes the result locally
 ```
 
-## Planned Technology Stack
+The main difference from a normal API workflow builder is that CLI agents are treated as first-class nodes. If a tool already works in your terminal, KnotAgent should be able to run it from the canvas and stream its output back into the node.
 
-| Layer | Technology | Reason |
-| --- | --- | --- |
-| Desktop Wrapper | Tauri v2 | Native subprocess execution with a small desktop footprint. |
-| Frontend | React, TypeScript, Vite | Fast development and a strong UI ecosystem. |
-| Canvas Engine | `@xyflow/react` | Infinite visual canvas and custom node rendering. |
-| State Management | Zustand | Lightweight global state for nodes, edges, and execution state. |
-| Styling | Tailwind CSS, Lucide Icons | Developer-focused dark UI with clear controls. |
-| IPC Bus | Tauri IPC, Rust child processes | Non-blocking real-time streaming from terminal agents. |
+## Current Status
 
-## Initial Data Model
+This repo currently has the first working app scaffold:
 
-KnotAgent workflows are represented as a versioned canvas schema:
-
-```ts
-export type NodeType =
-  | 'cli_agent'
-  | 'local_llm'
-  | 'cloud_api'
-  | 'input'
-  | 'markdown_output';
-
-export type CLIAgentType = 'claude' | 'codex' | 'agy' | 'gh' | 'custom';
-
-export interface CanvasSchema {
-  version: string;
-  nodes: Array<{
-    id: string;
-    type: NodeType;
-    position: { x: number; y: number };
-    data: Record<string, unknown>;
-  }>;
-  edges: Array<{
-    id: string;
-    source: string;
-    target: string;
-  }>;
-}
-```
-
-## Subprocess Bus
-
-The Rust backend will provide a universal command runner for CLI agent nodes:
-
-- Spawn arbitrary binaries such as `claude`, `codex`, `agy`, and `gh`.
-- Pass node-defined arguments and working directories.
-- Substitute upstream node output into arguments using `{{input}}`.
-- Stream output back to the canvas through Tauri events.
-- Preserve local terminal sessions and existing CLI authentication flows.
-
-## Roadmap
-
-### Phase 1: Project Foundation
-
-- Set up Tauri v2, React, TypeScript, and Vite.
-- Add React Flow canvas with basic node and edge editing.
-- Define shared TypeScript canvas and node schemas.
-- Create initial dark developer UI shell.
-
-### Phase 2: CLI Agent Nodes
-
-- Add CLI presets for `claude`, `codex`, `agy`, and `gh`.
-- Implement the Rust subprocess runner.
-- Stream CLI output into each node in real time.
-- Support working directory selection and argument templates.
-
-### Phase 3: Multi-Agent Pipeline Engine
-
-- Add topological execution for DAG workflows.
-- Pass upstream outputs into downstream nodes.
-- Support `{{input}}` substitution in CLI arguments and prompts.
-- Add execution state, error state, and retry handling.
-
-### Phase 4: Local and Cloud LLM Nodes
-
-- Add Ollama, LM Studio, and vLLM-compatible local HTTP nodes.
-- Add Anthropic, OpenAI, and Gemini API nodes.
-- Provide model, temperature, system prompt, and API key configuration.
-
-### Phase 5: Workflow Persistence
-
-- Save and load canvas files.
-- Export workflow schemas.
-- Add reusable node presets and templates.
-
-## Project Status
-
-KnotAgent is currently in the foundation stage. The repository includes the first working desktop-app scaffold:
-
-- React + TypeScript + Vite app shell
-- React Flow visual canvas
+- React + TypeScript + Vite frontend
+- React Flow canvas
 - CLI agent, local LLM, cloud API, input, and markdown output nodes
+- CLI presets for `claude`, `codex`, `agy`, and `gh`
 - Zustand canvas store
-- DAG pipeline execution engine
-- Tauri v2 Rust command for spawning CLI agents and streaming `stdout` / `stderr`
+- DAG pipeline execution
+- Tauri v2 Rust command for spawning CLI agents
+- Realtime `stdout` / `stderr` streaming from Rust to the canvas
 
-Rust is required to build or run the Tauri desktop wrapper locally.
+The UI can run in a browser with Vite. CLI execution requires the Tauri desktop runtime.
 
-## Development Prerequisites
+## Stack
 
-Required for all platforms:
+- Tauri v2
+- React
+- TypeScript
+- Vite
+- React Flow (`@xyflow/react`)
+- Zustand
+- Rust subprocess execution
 
-- Node.js 22 or later
-- npm 10 or later
-- Git
-
-Required for Tauri desktop development:
-
-- Rust and Cargo through `rustup`
-- Platform-specific native build dependencies
-
-### Windows
-
-Install Rust:
-
-```powershell
-winget install Rustlang.Rustup
-```
-
-Install Microsoft Visual Studio Build Tools:
-
-```powershell
-winget install Microsoft.VisualStudio.2022.BuildTools
-```
-
-If Build Tools is already installed, `winget` may report that no upgrade is available. In that case, open Visual Studio Installer and choose **Modify** for Build Tools 2022:
-
-```powershell
-& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-```
-
-In the installer, select this workload:
-
-```text
-Desktop development with C++
-```
-
-Make sure these components are included:
-
-```text
-MSVC v143 - VS 2022 C++ x64/x86 build tools
-Windows 10 SDK or Windows 11 SDK
-C++ CMake tools for Windows
-```
-
-Close and reopen PowerShell, then verify:
-
-```powershell
-cargo --version
-rustc --version
-where link
-```
-
-If `where link` still does not print a path, run KnotAgent from:
-
-```text
-x64 Native Tools Command Prompt for VS 2022
-```
-
-`npm install` does not install Visual C++ Build Tools. The tools are only needed for local Tauri development and builds, not for end users installing a prebuilt KnotAgent release.
-
-## Development
+## Run Locally
 
 Install dependencies:
 
@@ -227,23 +55,102 @@ Install dependencies:
 npm install
 ```
 
-Run the web frontend:
+Run the frontend only:
 
 ```bash
 npm run dev
 ```
 
-Build the frontend:
+Open:
 
-```bash
-npm run build
+```text
+http://127.0.0.1:1420/
 ```
 
-Run the Tauri desktop app after installing Rust and native build prerequisites:
+Run the desktop app:
 
 ```bash
 npm run tauri dev
 ```
+
+Use the desktop app when testing CLI nodes.
+
+## Windows Setup
+
+For frontend-only development, Node.js and npm are enough.
+
+For Tauri desktop development, install Rust and Microsoft C++ build tools.
+
+```powershell
+winget install Rustlang.Rustup
+winget install Microsoft.VisualStudio.2022.BuildTools
+```
+
+If Build Tools is already installed, `winget` may say there is no upgrade available. That does not mean the C++ workload is installed.
+
+Open Visual Studio Installer:
+
+```powershell
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+```
+
+Choose **Modify** for Build Tools 2022 and install:
+
+```text
+Desktop development with C++
+```
+
+Make sure these are included:
+
+```text
+MSVC v143 - VS 2022 C++ x64/x86 build tools
+Windows 10 SDK or Windows 11 SDK
+C++ CMake tools for Windows
+```
+
+Then open a new terminal and check:
+
+```powershell
+cargo --version
+rustc --version
+where link
+```
+
+If `where link` prints nothing, run the project from:
+
+```text
+x64 Native Tools Command Prompt for VS 2022
+```
+
+## CLI Nodes
+
+CLI nodes currently expose:
+
+- command
+- arguments
+- working directory
+- live output
+
+Arguments can use `{{input}}`, which is replaced with upstream node output.
+
+Example:
+
+```text
+Command: codex
+Arguments: exec {{input}}
+```
+
+Custom CLIs can be tested by editing an existing CLI node's command and arguments in the inspector.
+
+## Roadmap
+
+- Better custom CLI node editor
+- Safer argument handling for quoted strings and JSON
+- Real Ollama / LM Studio / vLLM calls
+- Cloud API nodes for OpenAI, Anthropic, and Gemini
+- Save and load canvas files
+- Workflow templates
+- Packaged desktop releases
 
 ## License
 
