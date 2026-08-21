@@ -14,9 +14,24 @@ import {
   createLocalLLMNodeData,
   createMarkdownOutputNodeData,
 } from '../data/nodePresets';
-import type { KnotEdge, KnotNode, KnotNodeData, NodeType } from '../types/canvas';
+import type {
+  CanvasSchema,
+  KnotEdge,
+  KnotNode,
+  KnotNodeData,
+  NodeType,
+  SavedWorkflow,
+  WorkflowContext,
+} from '../types/canvas';
+
+const STORAGE_KEY = 'knotagent.workflows.v1';
+const SEED_KEY = 'knotagent.example.seeded.v1';
 
 interface CanvasState {
+  workflowId?: string;
+  workflowName: string;
+  workflowContext: WorkflowContext;
+  workflows: SavedWorkflow[];
   nodes: KnotNode[];
   edges: KnotEdge[];
   selectedNodeId?: string;
@@ -29,7 +44,11 @@ interface CanvasState {
   appendNodeOutput: (id: string, chunk: string) => void;
   deleteNode: (id: string) => void;
   newCanvas: () => void;
-  loadExamplePipeline: () => void;
+  saveWorkflow: () => void;
+  loadWorkflow: (id: string) => void;
+  deleteWorkflow: (id: string) => void;
+  updateWorkflowName: (name: string) => void;
+  updateWorkflowContext: (context: Partial<WorkflowContext>) => void;
   setSelectedNode: (id?: string) => void;
   setIsRunning: (isRunning: boolean) => void;
 }
@@ -71,9 +90,96 @@ function createExampleEdges(): KnotEdge[] {
   ];
 }
 
+function createDefaultContext(): WorkflowContext {
+  return {
+    goal: 'Coordinate local CLI agents to solve the feature request.',
+    constraints: 'Keep outputs concise. Preserve useful implementation details. Pass only relevant results downstream.',
+  };
+}
+
+function createExampleSchema(): CanvasSchema {
+  return {
+    version: '0.1.0',
+    name: 'Example: Antigravity to Codex',
+    context: createDefaultContext(),
+    nodes: createExampleNodes(),
+    edges: createExampleEdges(),
+  };
+}
+
+function createEmptySchema(): CanvasSchema {
+  return {
+    version: '0.1.0',
+    name: 'Untitled Workflow',
+    context: createDefaultContext(),
+    nodes: [],
+    edges: [],
+  };
+}
+
+function readSavedWorkflows(): SavedWorkflow[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const workflows = raw ? (JSON.parse(raw) as SavedWorkflow[]) : [];
+    return seedExampleWorkflow(workflows);
+  } catch {
+    return seedExampleWorkflow([]);
+  }
+}
+
+function writeSavedWorkflows(workflows: SavedWorkflow[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(workflows));
+}
+
+function seedExampleWorkflow(workflows: SavedWorkflow[]): SavedWorkflow[] {
+  if (localStorage.getItem(SEED_KEY)) return workflows;
+
+  const example: SavedWorkflow = {
+    id: 'example-antigravity-codex',
+    name: 'Example: Antigravity to Codex',
+    updatedAt: new Date().toISOString(),
+    schema: createExampleSchema(),
+  };
+
+  const seeded = workflows.some((workflow) => workflow.id === example.id)
+    ? workflows
+    : [example, ...workflows];
+  writeSavedWorkflows(seeded);
+  localStorage.setItem(SEED_KEY, '1');
+  return seeded;
+}
+
+function schemaFromState(state: CanvasState): CanvasSchema {
+  return {
+    version: '0.1.0',
+    name: state.workflowName,
+    context: state.workflowContext,
+    nodes: state.nodes,
+    edges: state.edges,
+  };
+}
+
+function applySchema(schema: CanvasSchema) {
+  return {
+    workflowName: schema.name || 'Untitled Workflow',
+    workflowContext: schema.context || createDefaultContext(),
+    nodes: schema.nodes as KnotNode[],
+    edges: schema.edges,
+    selectedNodeId: undefined,
+    isRunning: false,
+  };
+}
+
+const initialWorkflows = readSavedWorkflows();
+const initialSchema = initialWorkflows[0]?.schema ?? createEmptySchema();
+
 export const useCanvasStore = create<CanvasState>((set) => ({
-  nodes: createExampleNodes(),
-  edges: createExampleEdges(),
+  workflowId: initialWorkflows[0]?.id,
+  workflowName: initialSchema.name || 'Untitled Workflow',
+  workflowContext: initialSchema.context || createDefaultContext(),
+  workflows: initialWorkflows,
+  nodes: initialSchema.nodes as KnotNode[],
+  edges: initialSchema.edges,
   selectedNodeId: undefined,
   isRunning: false,
   onNodesChange: (changes) => {
@@ -139,19 +245,63 @@ export const useCanvasStore = create<CanvasState>((set) => ({
   },
   newCanvas: () => {
     set({
+      workflowId: undefined,
+      workflowName: 'Untitled Workflow',
+      workflowContext: createDefaultContext(),
       nodes: [],
       edges: [],
       selectedNodeId: undefined,
       isRunning: false,
     });
   },
-  loadExamplePipeline: () => {
-    set({
-      nodes: createExampleNodes(),
-      edges: createExampleEdges(),
-      selectedNodeId: undefined,
-      isRunning: false,
+  saveWorkflow: () => {
+    set((state) => {
+      const id = state.workflowId || `workflow-${crypto.randomUUID()}`;
+      const name = state.workflowName.trim() || 'Untitled Workflow';
+      const saved: SavedWorkflow = {
+        id,
+        name,
+        updatedAt: new Date().toISOString(),
+        schema: {
+          ...schemaFromState({ ...state, workflowName: name }),
+          name,
+        },
+      };
+      const workflows = [
+        saved,
+        ...state.workflows.filter((workflow) => workflow.id !== id),
+      ];
+      writeSavedWorkflows(workflows);
+      return { workflowId: id, workflowName: name, workflows };
     });
+  },
+  loadWorkflow: (id) => {
+    set((state) => {
+      const workflow = state.workflows.find((candidate) => candidate.id === id);
+      if (!workflow) return {};
+      return {
+        workflowId: workflow.id,
+        ...applySchema(workflow.schema),
+      };
+    });
+  },
+  deleteWorkflow: (id) => {
+    set((state) => {
+      const workflows = state.workflows.filter((workflow) => workflow.id !== id);
+      writeSavedWorkflows(workflows);
+      return {
+        workflows,
+        ...(state.workflowId === id
+          ? { workflowId: undefined, ...applySchema(createEmptySchema()) }
+          : {}),
+      };
+    });
+  },
+  updateWorkflowName: (workflowName) => set({ workflowName }),
+  updateWorkflowContext: (context) => {
+    set((state) => ({
+      workflowContext: { ...state.workflowContext, ...context },
+    }));
   },
   setSelectedNode: (selectedNodeId) => set({ selectedNodeId }),
   setIsRunning: (isRunning) => set({ isRunning }),

@@ -144,8 +144,12 @@ CLI 노드는 현재 다음 값을 편집할 수 있습니다.
 
 - command
 - arguments
+- role
+- role prompt
 - working directory
 - live output
+
+워크플로에는 goal과 constraints를 담는 공유 context가 있습니다. CLI 노드가 실행될 때 KnotAgent는 공유 workflow context, 노드 role prompt, 상위 노드 출력을 하나의 prompt로 합성한 뒤 `{{input}}`에 치환합니다.
 
 arguments는 한 줄에 하나씩 편집합니다. 각 줄은 하나의 CLI argument가 됩니다.
 
@@ -162,7 +166,9 @@ exec
 
 Custom CLI는 기존 CLI 노드의 command와 arguments를 inspector에서 바꿔서 테스트할 수 있습니다.
 
-**New**는 캔버스를 비웁니다. **Example**은 기본 input -> Antigravity -> Codex -> markdown 파이프라인을 다시 불러옵니다.
+**New**는 캔버스를 비웁니다.
+
+**Save**는 현재 워크플로를 로컬에 저장합니다. 저장된 워크플로는 사이드바 목록에서 불러오거나 삭제할 수 있습니다. 예제 Antigravity -> Codex 워크플로는 최초 한 번 목록에 추가됩니다.
 
 기본 Antigravity 노드는 headless mode를 사용합니다.
 
@@ -185,9 +191,12 @@ Local LLM과 Cloud API 노드는 현재 연결 가능한 placeholder입니다. �
 
 Markdown Output은 heading, list, inline code, bold text, fenced code block 같은 안전한 subset의 markdown을 렌더링합니다.
 
+CLI 에이전트마다 stdout 형식은 다릅니다. 현재 KnotAgent는 raw CLI output을 보존하므로 Antigravity와 Codex 출력 모양이 다르게 보일 수 있습니다. 에이전트별 clean output adapter는 이후 구현할 예정입니다.
+
 ## 로드맵
 
 - 더 나은 custom CLI 노드 편집기
+- 에이전트별 clean output adapter
 - 따옴표 문자열과 JSON 인자를 안전하게 다루는 arguments 처리
 - Ollama / LM Studio / vLLM 실제 호출
 - OpenAI, Anthropic용 Cloud API 노드

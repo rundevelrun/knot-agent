@@ -144,8 +144,12 @@ CLI nodes currently expose:
 
 - command
 - arguments
+- role
+- role prompt
 - working directory
 - live output
+
+The workflow has shared context fields for goal and constraints. When a CLI node runs, KnotAgent combines the shared workflow context, the node role prompt, and upstream output into one prompt before replacing `{{input}}`.
 
 Arguments are edited one per line. Each line becomes one CLI argument.
 
@@ -162,7 +166,9 @@ exec
 
 Custom CLIs can be tested by editing an existing CLI node's command and arguments in the inspector.
 
-Use **New** to clear the canvas. Use **Example** to restore the default input -> Antigravity -> Codex -> markdown pipeline.
+Use **New** to clear the canvas.
+
+Use **Save** to store the current workflow locally. Saved workflows appear in the sidebar and can be loaded or deleted. The example Antigravity -> Codex workflow is seeded into the list once.
 
 The default Antigravity node uses headless mode:
 
@@ -185,9 +191,12 @@ Local LLM and Cloud API nodes are currently connectable placeholders. They show 
 
 Markdown Output renders a safe subset of markdown, including headings, lists, inline code, bold text, and fenced code blocks.
 
+Different CLI agents produce different stdout formats. KnotAgent currently preserves raw CLI output, so Antigravity and Codex may look different in the output node. Adapter-based clean output is planned.
+
 ## Roadmap
 
 - Better custom CLI node editor
+- Agent-specific clean output adapters
 - Safer argument handling for quoted strings and JSON
 - Real Ollama / LM Studio / vLLM calls
 - Cloud API nodes for OpenAI and Anthropic

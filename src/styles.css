@@ -19,6 +19,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -175,6 +176,89 @@ textarea {
 .palette-item:hover {
   border-color: #71717a;
   background: #202024;
+}
+
+.compact-field {
+  display: grid;
+  gap: 6px;
+}
+
+.compact-field span {
+  color: #a1a1aa;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.compact-field input,
+.compact-field textarea {
+  width: 100%;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  padding: 8px 9px;
+  color: #f4f4f5;
+  background: #18181b;
+  outline: none;
+}
+
+.compact-field textarea {
+  resize: vertical;
+}
+
+.workflow-list {
+  display: grid;
+  gap: 8px;
+}
+
+.workflow-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 6px;
+}
+
+.workflow-load,
+.icon-button {
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  color: #f4f4f5;
+  background: #18181b;
+  cursor: pointer;
+}
+
+.workflow-load {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px;
+  text-align: left;
+}
+
+.workflow-load span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  color: #fecaca;
+}
+
+.workflow-load:hover,
+.icon-button:hover {
+  border-color: #71717a;
+  background: #202024;
+}
+
+.saved-empty {
+  border: 1px dashed #3f3f46;
+  border-radius: 8px;
+  padding: 10px;
+  color: #71717a;
+  font-size: 12px;
+  text-align: center;
 }
 
 .canvas-region {
@@ -381,6 +465,7 @@ textarea {
 }
 
 .field input,
+.field select,
 .field textarea {
   width: 100%;
   border: 1px solid #3f3f46;
@@ -391,11 +476,16 @@ textarea {
   outline: none;
 }
 
+.field select {
+  appearance: none;
+}
+
 .field textarea {
   resize: vertical;
 }
 
 .field input:focus,
+.field select:focus,
 .field textarea:focus {
   border-color: #22c55e;
 }

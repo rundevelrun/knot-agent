@@ -14,6 +14,8 @@ export interface CLINodeData extends BaseNodeData {
   agentType: CLIAgentType;
   command: string;
   args: string[];
+  role: string;
+  rolePrompt: string;
   workingDir?: string;
   streamingOutput: string;
 }
@@ -55,6 +57,8 @@ export type KnotNode = Node<KnotNodeData, NodeType>;
 
 export interface CanvasSchema {
   version: string;
+  name?: string;
+  context?: WorkflowContext;
   nodes: Array<{
     id: string;
     type: NodeType;
@@ -66,6 +70,18 @@ export interface CanvasSchema {
     source: string;
     target: string;
   }>;
+}
+
+export interface WorkflowContext {
+  goal: string;
+  constraints: string;
+}
+
+export interface SavedWorkflow {
+  id: string;
+  name: string;
+  updatedAt: string;
+  schema: CanvasSchema;
 }
 
 export interface CLIStreamEvent {

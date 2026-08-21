@@ -10,17 +10,19 @@ import {
   Bot,
   Braces,
   Cloud,
+  FolderOpen,
   FileText,
   GitBranch,
-  RotateCcw,
   Play,
   Plus,
+  Save,
   Server,
   SquareTerminal,
   Trash2,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { cliPresets, createCliNodeData, createCloudAPINodeData, createInputNodeData, createLocalLLMNodeData, createMarkdownOutputNodeData } from './data/nodePresets';
+import { rolePresets } from './data/rolePresets';
 import { executeMultiAgentPipeline } from './engine/pipeline';
 import { useCliStream } from './hooks/useCliStream';
 import { AgentNode } from './nodes/AgentNode';
@@ -45,6 +47,9 @@ export function App() {
   const {
     nodes,
     edges,
+    workflowName,
+    workflowContext,
+    workflows,
     selectedNodeId,
     isRunning,
     onNodesChange,
@@ -52,7 +57,11 @@ export function App() {
     onConnect,
     addNode,
     newCanvas,
-    loadExamplePipeline,
+    saveWorkflow,
+    loadWorkflow,
+    deleteWorkflow,
+    updateWorkflowName,
+    updateWorkflowContext,
     updateNodeData,
     setSelectedNode,
     setIsRunning,
@@ -70,7 +79,7 @@ export function App() {
   async function runPipeline() {
     setIsRunning(true);
     try {
-      await executeMultiAgentPipeline(nodes, edges, updateNodeData);
+      await executeMultiAgentPipeline(nodes, edges, workflowContext, updateNodeData);
     } catch (error) {
       console.error('Pipeline execution failed', error);
     } finally {
@@ -108,11 +117,53 @@ export function App() {
             <Plus size={15} />
             New
           </button>
-          <button className="secondary-button" disabled={isRunning} onClick={loadExamplePipeline}>
-            <RotateCcw size={15} />
-            Example
+          <button className="secondary-button" disabled={isRunning} onClick={saveWorkflow}>
+            <Save size={15} />
+            Save
           </button>
         </div>
+
+        <section className="palette-section">
+          <h2>Workflow</h2>
+          <label className="compact-field">
+            <span>Name</span>
+            <input value={workflowName} onChange={(event) => updateWorkflowName(event.target.value)} />
+          </label>
+          <label className="compact-field">
+            <span>Goal</span>
+            <textarea
+              rows={3}
+              value={workflowContext.goal}
+              onChange={(event) => updateWorkflowContext({ goal: event.target.value })}
+            />
+          </label>
+          <label className="compact-field">
+            <span>Constraints</span>
+            <textarea
+              rows={3}
+              value={workflowContext.constraints}
+              onChange={(event) => updateWorkflowContext({ constraints: event.target.value })}
+            />
+          </label>
+        </section>
+
+        <section className="palette-section">
+          <h2>Saved</h2>
+          <div className="workflow-list">
+            {workflows.length === 0 && <div className="saved-empty">No saved workflows</div>}
+            {workflows.map((workflow) => (
+              <div className="workflow-item" key={workflow.id}>
+                <button className="workflow-load" onClick={() => loadWorkflow(workflow.id)}>
+                  <FolderOpen size={15} />
+                  <span>{workflow.name}</span>
+                </button>
+                <button className="icon-button" aria-label={`Delete ${workflow.name}`} onClick={() => deleteWorkflow(workflow.id)}>
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section className="palette-section">
           <h2>CLI Agents</h2>
@@ -237,6 +288,33 @@ function Inspector({ selectedNode }: { selectedNode?: KnotNode }) {
             <input
               value={String(selectedNode.data.command ?? '')}
               onChange={(event) => updateNodeData(selectedNode.id, { command: event.target.value })}
+            />
+          </label>
+          <label className="field">
+            <span>Role</span>
+            <select
+              value={String(selectedNode.data.role ?? 'architect')}
+              onChange={(event) => {
+                const role = rolePresets.find((candidate) => candidate.id === event.target.value);
+                updateNodeData(selectedNode.id, {
+                  role: event.target.value,
+                  rolePrompt: role?.prompt ?? String(selectedNode.data.rolePrompt ?? ''),
+                });
+              }}
+            >
+              {rolePresets.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Role prompt</span>
+            <textarea
+              rows={5}
+              value={String(selectedNode.data.rolePrompt ?? '')}
+              onChange={(event) => updateNodeData(selectedNode.id, { rolePrompt: event.target.value })}
             />
           </label>
           <label className="field">

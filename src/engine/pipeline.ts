@@ -8,6 +8,8 @@ import type {
   LocalLLMNodeData,
   MarkdownOutputNodeData,
 } from '../types/canvas';
+import type { WorkflowContext } from '../types/canvas';
+import { composeAgentPrompt } from './prompt';
 import { isTauriRuntime } from '../utils/runtime';
 
 type UpdateNodeState = (id: string, data: Partial<KnotNode['data']>) => void;
@@ -15,6 +17,7 @@ type UpdateNodeState = (id: string, data: Partial<KnotNode['data']>) => void;
 export async function executeMultiAgentPipeline(
   nodes: KnotNode[],
   edges: KnotEdge[],
+  workflowContext: WorkflowContext,
   updateNodeState: UpdateNodeState,
 ): Promise<void> {
   const executionOrder = getTopologicalOrder(nodes, edges);
@@ -29,7 +32,7 @@ export async function executeMultiAgentPipeline(
     updateNodeState(nodeId, { isExecuting: true, error: undefined });
 
     try {
-      const resultText = await executeNode(node, combinedInput);
+      const resultText = await executeNode(node, combinedInput, workflowContext);
       nodeOutputs[nodeId] = resultText;
       updateNodeState(nodeId, {
         isExecuting: false,
@@ -56,7 +59,11 @@ function collectParentOutputs(
     .join('\n\n---\n\n');
 }
 
-async function executeNode(node: KnotNode, combinedInput: string): Promise<string> {
+async function executeNode(
+  node: KnotNode,
+  combinedInput: string,
+  workflowContext: WorkflowContext,
+): Promise<string> {
   if (node.type === 'input') {
     return (node.data as InputNodeData).text;
   }
@@ -67,9 +74,10 @@ async function executeNode(node: KnotNode, combinedInput: string): Promise<strin
     }
 
     const data = node.data as CLINodeData;
+    const agentInput = composeAgentPrompt(workflowContext, data, combinedInput);
     const processedArgs = data.args.length > 0
-      ? data.args.map((arg) => arg.split('{{input}}').join(combinedInput))
-      : ['{{input}}'.replace('{{input}}', combinedInput)];
+      ? data.args.map((arg) => arg.split('{{input}}').join(agentInput))
+      : [agentInput];
 
     return invoke<string>('run_agent_cli', {
       nodeId: node.id,

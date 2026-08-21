@@ -6,12 +6,14 @@ import type {
   LocalLLMNodeData,
   MarkdownOutputNodeData,
 } from '../types/canvas';
+import { getRolePreset } from './rolePresets';
 
 interface CLIPreset {
   agentType: CLIAgentType;
   label: string;
   command: string;
   args: string[];
+  role: string;
 }
 
 export const cliPresets: CLIPreset[] = [
@@ -20,33 +22,40 @@ export const cliPresets: CLIPreset[] = [
     label: 'Antigravity (Gemini)',
     command: 'agy',
     args: ['-p', '{{input}}', '--print-timeout', '90s'],
+    role: 'architect',
   },
   {
     agentType: 'claude',
     label: 'Claude',
     command: 'claude',
     args: ['-p', '{{input}}'],
+    role: 'implementer',
   },
   {
     agentType: 'codex',
     label: 'Codex',
     command: 'codex',
     args: ['exec', '{{input}}'],
+    role: 'reviewer',
   },
   {
     agentType: 'gh',
     label: 'GitHub',
     command: 'gh',
     args: ['issue', 'list'],
+    role: 'summarizer',
   },
 ];
 
 export function createCliNodeData(preset: CLIPreset): CLINodeData {
+  const role = getRolePreset(preset.role);
   return {
     label: preset.label,
     agentType: preset.agentType,
     command: preset.command,
     args: preset.args,
+    role: role.id,
+    rolePrompt: role.prompt,
     workingDir: '',
     streamingOutput: '',
   };
