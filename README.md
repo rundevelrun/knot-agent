@@ -183,10 +183,24 @@ Install Microsoft Visual Studio Build Tools:
 winget install Microsoft.VisualStudio.2022.BuildTools
 ```
 
-When the Build Tools installer opens, select:
+If Build Tools is already installed, `winget` may report that no upgrade is available. In that case, open Visual Studio Installer and choose **Modify** for Build Tools 2022:
+
+```powershell
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+```
+
+In the installer, select this workload:
 
 ```text
 Desktop development with C++
+```
+
+Make sure these components are included:
+
+```text
+MSVC v143 - VS 2022 C++ x64/x86 build tools
+Windows 10 SDK or Windows 11 SDK
+C++ CMake tools for Windows
 ```
 
 Close and reopen PowerShell, then verify:
@@ -194,6 +208,13 @@ Close and reopen PowerShell, then verify:
 ```powershell
 cargo --version
 rustc --version
+where link
+```
+
+If `where link` still does not print a path, run KnotAgent from:
+
+```text
+x64 Native Tools Command Prompt for VS 2022
 ```
 
 `npm install` does not install Visual C++ Build Tools. The tools are only needed for local Tauri development and builds, not for end users installing a prebuilt KnotAgent release.
