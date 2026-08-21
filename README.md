@@ -163,7 +163,7 @@ Custom CLIs can be tested by editing an existing CLI node's command and argument
 - Better custom CLI node editor
 - Safer argument handling for quoted strings and JSON
 - Real Ollama / LM Studio / vLLM calls
-- Cloud API nodes for OpenAI, Anthropic, and Gemini
+- Cloud API nodes for OpenAI and Anthropic
 - Save and load canvas files
 - Workflow templates
 - Remote desktop host registration

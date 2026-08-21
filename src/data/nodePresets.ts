@@ -17,7 +17,7 @@ interface CLIPreset {
 export const cliPresets: CLIPreset[] = [
   {
     agentType: 'agy',
-    label: 'Gemini CLI Architect',
+    label: 'AGY Architect',
     command: 'agy',
     args: ['{{input}}'],
   },

@@ -2,6 +2,7 @@ use std::{
     io::{BufRead, BufReader},
     process::{Command, Stdio},
     thread,
+    time::{Duration, Instant},
 };
 
 use serde::Serialize;
@@ -16,12 +17,28 @@ struct CliStreamPayload {
 }
 
 #[tauri::command]
-fn run_agent_cli(
+async fn run_agent_cli(
     window: Window,
     node_id: String,
     command: String,
     args: Vec<String>,
     cwd: Option<String>,
+    timeout_seconds: Option<u64>,
+) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        run_agent_cli_blocking(window, node_id, command, args, cwd, timeout_seconds)
+    })
+    .await
+    .map_err(|error| format!("Failed to join CLI agent task: {}", error))?
+}
+
+fn run_agent_cli_blocking(
+    window: Window,
+    node_id: String,
+    command: String,
+    args: Vec<String>,
+    cwd: Option<String>,
+    timeout_seconds: Option<u64>,
 ) -> Result<String, String> {
     let mut cmd = Command::new(&command);
     cmd.args(&args)
@@ -55,9 +72,30 @@ fn run_agent_cli(
     let stderr_handle =
         thread::spawn(move || read_stream(stderr, stderr_window, stderr_node_id, "stderr"));
 
-    let status = child
-        .wait()
-        .map_err(|error| format!("CLI agent execution error: {}", error))?;
+    let timeout = Duration::from_secs(timeout_seconds.unwrap_or(120).max(1));
+    let started_at = Instant::now();
+    let status = loop {
+        if let Some(status) = child
+            .try_wait()
+            .map_err(|error| format!("CLI agent execution error: {}", error))?
+        {
+            break status;
+        }
+
+        if started_at.elapsed() >= timeout {
+            let _ = child.kill();
+            let _ = child.wait();
+            let _ = stdout_handle.join();
+            let _ = stderr_handle.join();
+            return Err(format!(
+                "CLI agent '{}' timed out after {} seconds",
+                command,
+                timeout.as_secs()
+            ));
+        }
+
+        thread::sleep(Duration::from_millis(100));
+    };
 
     let mut full_output = stdout_handle
         .join()

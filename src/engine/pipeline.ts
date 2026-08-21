@@ -76,6 +76,7 @@ async function executeNode(node: KnotNode, combinedInput: string): Promise<strin
       command: data.command || data.agentType,
       args: processedArgs,
       cwd: data.workingDir || null,
+      timeoutSeconds: 120,
     });
   }
 

@@ -163,7 +163,7 @@ Custom CLI는 기존 CLI 노드의 command와 arguments를 inspector에서 바�
 - 더 나은 custom CLI 노드 편집기
 - 따옴표 문자열과 JSON 인자를 안전하게 다루는 arguments 처리
 - Ollama / LM Studio / vLLM 실제 호출
-- OpenAI, Anthropic, Gemini용 Cloud API 노드
+- OpenAI, Anthropic용 Cloud API 노드
 - 캔버스 파일 저장 및 불러오기
 - 워크플로 템플릿
 - 원격 데스크톱 호스트 등록

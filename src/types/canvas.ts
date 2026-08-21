@@ -28,7 +28,7 @@ export interface LocalLLMNodeData extends BaseNodeData {
 }
 
 export interface CloudAPINodeData extends BaseNodeData {
-  provider: 'anthropic' | 'openai' | 'gemini';
+  provider: 'anthropic' | 'openai';
   model: string;
   apiKey?: string;
   systemPrompt: string;
