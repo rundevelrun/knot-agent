@@ -166,9 +166,11 @@ exec
 
 Custom CLI는 기존 CLI 노드의 command와 arguments를 inspector에서 바꿔서 테스트할 수 있습니다.
 
-**New**는 캔버스를 비웁니다.
+**New**는 빈 workflow tab을 엽니다.
 
 **Save**는 현재 워크플로를 로컬에 저장합니다. 저장된 워크플로는 사이드바 목록에서 불러오거나 삭제할 수 있습니다. 예제 Antigravity -> Codex 워크플로는 최초 한 번 목록에 추가됩니다.
+
+여러 워크플로를 탭으로 동시에 열 수 있습니다. Run과 Save는 현재 활성 탭에만 적용됩니다.
 
 기본 Antigravity 노드는 headless mode를 사용합니다.
 
@@ -186,6 +188,14 @@ Arguments:
 노드 오른쪽 handle에서 다른 노드 왼쪽 handle로 드래그하면 연결됩니다.
 
 `Run pipeline`을 누르면 KnotAgent는 그래프를 DAG 순서로 실행하고, 상위 노드 출력을 다음 노드 입력으로 넘깁니다. 여러 상위 노드가 연결되어 있으면 출력들을 합쳐서 하위 노드로 전달합니다.
+
+노드나 엣지를 선택한 뒤 `Delete` 또는 `Backspace`를 누르면 삭제됩니다.
+
+단축키:
+
+- `Ctrl/Cmd + S`: 활성 workflow 저장
+- `Ctrl/Cmd + N`: 새 빈 workflow tab 열기
+- `Delete` / `Backspace`: 선택한 노드 또는 엣지 삭제
 
 Local LLM과 Cloud API 노드는 현재 연결 가능한 placeholder입니다. 캔버스에서 데이터가 어떻게 흐를지 보여주지만, 실제 Ollama / LM Studio / OpenAI / Anthropic 호출은 아직 로드맵 단계입니다.
 

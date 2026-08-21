@@ -1,6 +1,7 @@
 import {
   Background,
   BackgroundVariant,
+  ConnectionLineType,
   Controls,
   MiniMap,
   ReactFlow,
@@ -19,8 +20,9 @@ import {
   Server,
   SquareTerminal,
   Trash2,
+  X,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { cliPresets, createCliNodeData, createCloudAPINodeData, createInputNodeData, createLocalLLMNodeData, createMarkdownOutputNodeData } from './data/nodePresets';
 import { rolePresets } from './data/rolePresets';
 import { executeMultiAgentPipeline } from './engine/pipeline';
@@ -50,6 +52,8 @@ export function App() {
     workflowName,
     workflowContext,
     workflows,
+    openTabs,
+    activeTabId,
     selectedNodeId,
     isRunning,
     onNodesChange,
@@ -58,7 +62,9 @@ export function App() {
     addNode,
     newCanvas,
     saveWorkflow,
-    loadWorkflow,
+    openWorkflow,
+    switchTab,
+    closeTab,
     deleteWorkflow,
     updateWorkflowName,
     updateWorkflowContext,
@@ -87,6 +93,28 @@ export function App() {
     }
   }
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const isMod = event.ctrlKey || event.metaKey;
+      if (!isMod) return;
+
+      if (event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        saveWorkflow();
+      }
+
+      if (event.key.toLowerCase() === 'n') {
+        event.preventDefault();
+        if (!isRunning) {
+          newCanvas();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isRunning, newCanvas, saveWorkflow]);
+
   function addPresetNode(type: NodeType) {
     if (type === 'input') addNode(type, createInputNodeData());
     if (type === 'local_llm') addNode(type, createLocalLLMNodeData());
@@ -105,22 +133,6 @@ export function App() {
             <h1>KnotAgent</h1>
             <p>Universal AI agent canvas</p>
           </div>
-        </div>
-
-        <button className="run-button" disabled={isRunning} onClick={runPipeline}>
-          <Play size={16} />
-          {isRunning ? 'Running pipeline' : 'Run pipeline'}
-        </button>
-
-        <div className="canvas-actions">
-          <button className="secondary-button" disabled={isRunning} onClick={newCanvas}>
-            <Plus size={15} />
-            New
-          </button>
-          <button className="secondary-button" disabled={isRunning} onClick={saveWorkflow}>
-            <Save size={15} />
-            Save
-          </button>
         </div>
 
         <section className="palette-section">
@@ -153,7 +165,7 @@ export function App() {
             {workflows.length === 0 && <div className="saved-empty">No saved workflows</div>}
             {workflows.map((workflow) => (
               <div className="workflow-item" key={workflow.id}>
-                <button className="workflow-load" onClick={() => loadWorkflow(workflow.id)}>
+                <button className="workflow-load" onClick={() => openWorkflow(workflow.id)}>
                   <FolderOpen size={15} />
                   <span>{workflow.name}</span>
                 </button>
@@ -194,21 +206,66 @@ export function App() {
       </aside>
 
       <main className="canvas-region">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeClick={onNodeClick}
-          onPaneClick={() => setSelectedNode(undefined)}
-          fitView
-        >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
-          <Controls />
-          <MiniMap pannable zoomable />
-        </ReactFlow>
+        <div className="tab-strip">
+          <button className="new-tab-button" disabled={isRunning} onClick={newCanvas}>
+            <Plus size={14} />
+          </button>
+          <div className="tabs">
+            {openTabs.map((tab) => (
+              <button
+                key={tab.tabId}
+                className={`tab ${tab.tabId === activeTabId ? 'active' : ''}`}
+                onClick={() => switchTab(tab.tabId)}
+              >
+                <span>{tab.name}</span>
+                {openTabs.length > 1 && (
+                  <X
+                    size={13}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      closeTab(tab.tabId);
+                    }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="tab-actions">
+            <button className="secondary-button" disabled={isRunning} onClick={saveWorkflow}>
+              <Save size={15} />
+              Save
+            </button>
+            <button className="run-button compact" disabled={isRunning} onClick={runPipeline}>
+              <Play size={16} />
+              {isRunning ? 'Running' : 'Run'}
+            </button>
+          </div>
+        </div>
+
+        <div className="canvas-help">
+          Drag from a right handle to a left handle to connect nodes. Select nodes or edges and press Delete.
+        </div>
+
+        <div className="flow-area">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={onNodeClick}
+            onPaneClick={() => setSelectedNode(undefined)}
+            connectionLineType={ConnectionLineType.SmoothStep}
+            defaultEdgeOptions={{ animated: true }}
+            deleteKeyCode={['Delete', 'Backspace']}
+            fitView
+          >
+            <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
+            <Controls />
+            <MiniMap pannable zoomable />
+          </ReactFlow>
+        </div>
       </main>
 
       <Inspector selectedNode={selectedNode} />

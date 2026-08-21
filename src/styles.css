@@ -43,6 +43,7 @@ textarea {
   gap: 22px;
   padding: 18px;
   border-right: 1px solid #27272a;
+  overflow-y: auto;
 }
 
 .brand {
@@ -101,6 +102,12 @@ textarea {
   border-color: #16a34a;
   background: #15803d;
   font-weight: 700;
+}
+
+.run-button.compact {
+  width: auto;
+  min-width: 92px;
+  padding: 9px 12px;
 }
 
 .run-button:disabled {
@@ -262,8 +269,88 @@ textarea {
 }
 
 .canvas-region {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
   min-width: 0;
   background: #0c0c0f;
+}
+
+.tab-strip {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid #27272a;
+  padding: 8px 10px;
+  background: #111113;
+}
+
+.new-tab-button,
+.tab,
+.tab-actions .secondary-button {
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  color: #f4f4f5;
+  background: #18181b;
+  cursor: pointer;
+}
+
+.new-tab-button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+}
+
+.tabs {
+  display: flex;
+  min-width: 0;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.tab {
+  display: flex;
+  max-width: 220px;
+  min-width: 120px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px;
+  color: #a1a1aa;
+}
+
+.tab.active {
+  border-color: #22c55e;
+  color: #f4f4f5;
+  background: #18181b;
+}
+
+.tab span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab svg {
+  flex: 0 0 auto;
+}
+
+.tab-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.canvas-help {
+  border-bottom: 1px solid #27272a;
+  padding: 7px 12px;
+  color: #71717a;
+  background: #0f0f12;
+  font-size: 12px;
+}
+
+.flow-area {
+  min-height: 0;
 }
 
 .react-flow__minimap {

@@ -166,9 +166,11 @@ exec
 
 Custom CLIs can be tested by editing an existing CLI node's command and arguments in the inspector.
 
-Use **New** to clear the canvas.
+Use **New** to open a blank workflow tab.
 
 Use **Save** to store the current workflow locally. Saved workflows appear in the sidebar and can be loaded or deleted. The example Antigravity -> Codex workflow is seeded into the list once.
+
+Multiple workflows can be open at the same time as tabs. Run and Save operate on the active tab.
 
 The default Antigravity node uses headless mode:
 
@@ -186,6 +188,14 @@ Arguments:
 Drag from a node's right handle to another node's left handle to connect them.
 
 On `Run pipeline`, KnotAgent executes the graph in DAG order and passes each upstream output into the next node. Multiple parent outputs are joined before being passed downstream.
+
+Select a node or edge and press `Delete` or `Backspace` to remove it.
+
+Shortcuts:
+
+- `Ctrl/Cmd + S`: save the active workflow
+- `Ctrl/Cmd + N`: open a new blank workflow tab
+- `Delete` / `Backspace`: delete selected nodes or edges
 
 Local LLM and Cloud API nodes are currently connectable placeholders. They show how data will flow through the canvas, but real Ollama / LM Studio / OpenAI / Anthropic calls are still on the roadmap.
 

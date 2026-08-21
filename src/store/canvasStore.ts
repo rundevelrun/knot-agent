@@ -20,6 +20,7 @@ import type {
   KnotNode,
   KnotNodeData,
   NodeType,
+  OpenWorkflowTab,
   SavedWorkflow,
   WorkflowContext,
 } from '../types/canvas';
@@ -32,6 +33,8 @@ interface CanvasState {
   workflowName: string;
   workflowContext: WorkflowContext;
   workflows: SavedWorkflow[];
+  openTabs: OpenWorkflowTab[];
+  activeTabId: string;
   nodes: KnotNode[];
   edges: KnotEdge[];
   selectedNodeId?: string;
@@ -45,6 +48,9 @@ interface CanvasState {
   deleteNode: (id: string) => void;
   newCanvas: () => void;
   saveWorkflow: () => void;
+  openWorkflow: (id: string) => void;
+  switchTab: (tabId: string) => void;
+  closeTab: (tabId: string) => void;
   loadWorkflow: (id: string) => void;
   deleteWorkflow: (id: string) => void;
   updateWorkflowName: (name: string) => void;
@@ -159,6 +165,21 @@ function schemaFromState(state: CanvasState): CanvasSchema {
   };
 }
 
+function schemaFromStateFields(
+  workflowName: string,
+  workflowContext: WorkflowContext,
+  nodes: KnotNode[],
+  edges: KnotEdge[],
+): CanvasSchema {
+  return {
+    version: '0.1.0',
+    name: workflowName,
+    context: workflowContext,
+    nodes,
+    edges,
+  };
+}
+
 function applySchema(schema: CanvasSchema) {
   return {
     workflowName: schema.name || 'Untitled Workflow',
@@ -170,32 +191,77 @@ function applySchema(schema: CanvasSchema) {
   };
 }
 
+function syncActiveTab(
+  state: CanvasState,
+  update: Partial<Pick<CanvasState, 'workflowId' | 'workflowName' | 'workflowContext' | 'nodes' | 'edges'>>,
+) {
+  const workflowId = update.workflowId ?? state.workflowId;
+  const workflowName = update.workflowName ?? state.workflowName;
+  const workflowContext = update.workflowContext ?? state.workflowContext;
+  const nodes = update.nodes ?? state.nodes;
+  const edges = update.edges ?? state.edges;
+  const schema = schemaFromStateFields(workflowName, workflowContext, nodes, edges);
+
+  return {
+    ...update,
+    openTabs: state.openTabs.map((tab) =>
+      tab.tabId === state.activeTabId
+        ? {
+            ...tab,
+            workflowId,
+            name: workflowName,
+            schema,
+          }
+        : tab,
+    ),
+  };
+}
+
+function createTab(schema: CanvasSchema, workflowId?: string): OpenWorkflowTab {
+  return {
+    tabId: `tab-${crypto.randomUUID()}`,
+    workflowId,
+    name: schema.name || 'Untitled Workflow',
+    schema,
+  };
+}
+
 const initialWorkflows = readSavedWorkflows();
 const initialSchema = initialWorkflows[0]?.schema ?? createEmptySchema();
+const initialTab = createTab(initialSchema, initialWorkflows[0]?.id);
 
 export const useCanvasStore = create<CanvasState>((set) => ({
   workflowId: initialWorkflows[0]?.id,
   workflowName: initialSchema.name || 'Untitled Workflow',
   workflowContext: initialSchema.context || createDefaultContext(),
   workflows: initialWorkflows,
+  openTabs: [initialTab],
+  activeTabId: initialTab.tabId,
   nodes: initialSchema.nodes as KnotNode[],
   edges: initialSchema.edges,
   selectedNodeId: undefined,
   isRunning: false,
   onNodesChange: (changes) => {
-    set((state) => ({ nodes: applyNodeChanges(changes, state.nodes) }));
+    set((state) => {
+      const nodes = applyNodeChanges(changes, state.nodes);
+      return syncActiveTab(state, { nodes });
+    });
   },
   onEdgesChange: (changes) => {
-    set((state) => ({ edges: applyEdgeChanges(changes, state.edges) }));
+    set((state) => {
+      const edges = applyEdgeChanges(changes, state.edges);
+      return syncActiveTab(state, { edges });
+    });
   },
   onConnect: (connection) => {
-    set((state) => ({
-      edges: addEdge({ ...connection, animated: true }, state.edges),
-    }));
+    set((state) => {
+      const edges = addEdge({ ...connection, animated: true }, state.edges);
+      return syncActiveTab(state, { edges });
+    });
   },
   addNode: (type, data) => {
-    set((state) => ({
-      nodes: [
+    set((state) => {
+      const nodes: KnotNode[] = [
         ...state.nodes,
         {
           id: `${type}-${crypto.randomUUID()}`,
@@ -206,24 +272,26 @@ export const useCanvasStore = create<CanvasState>((set) => ({
           },
           data,
         },
-      ],
-    }));
+      ];
+      return syncActiveTab(state, { nodes });
+    });
   },
   updateNodeData: (id, data) => {
-    set((state) => ({
-      nodes: state.nodes.map((node) =>
+    set((state) => {
+      const nodes = state.nodes.map((node) =>
         node.id === id
           ? {
               ...node,
               data: { ...node.data, ...data },
             }
           : node,
-      ),
-    }));
+      );
+      return syncActiveTab(state, { nodes });
+    });
   },
   appendNodeOutput: (id, chunk) => {
-    set((state) => ({
-      nodes: state.nodes.map((node) => {
+    set((state) => {
+      const nodes = state.nodes.map((node) => {
         if (node.id !== id) return node;
         const current = String(node.data.streamingOutput ?? '');
         return {
@@ -233,25 +301,35 @@ export const useCanvasStore = create<CanvasState>((set) => ({
             streamingOutput: `${current}${chunk}\n`,
           },
         };
-      }),
-    }));
+      });
+      return syncActiveTab(state, { nodes });
+    });
   },
   deleteNode: (id) => {
-    set((state) => ({
-      nodes: state.nodes.filter((node) => node.id !== id),
-      edges: state.edges.filter((edge) => edge.source !== id && edge.target !== id),
-      selectedNodeId: state.selectedNodeId === id ? undefined : state.selectedNodeId,
-    }));
+    set((state) => {
+      const nodes = state.nodes.filter((node) => node.id !== id);
+      const edges = state.edges.filter((edge) => edge.source !== id && edge.target !== id);
+      return {
+        ...syncActiveTab(state, { nodes, edges }),
+        selectedNodeId: state.selectedNodeId === id ? undefined : state.selectedNodeId,
+      };
+    });
   },
   newCanvas: () => {
-    set({
-      workflowId: undefined,
-      workflowName: 'Untitled Workflow',
-      workflowContext: createDefaultContext(),
-      nodes: [],
-      edges: [],
-      selectedNodeId: undefined,
-      isRunning: false,
+    set((state) => {
+      const schema = createEmptySchema();
+      const tab = createTab(schema);
+      return {
+        workflowId: undefined,
+        workflowName: schema.name || 'Untitled Workflow',
+        workflowContext: schema.context || createDefaultContext(),
+        openTabs: [...state.openTabs, tab],
+        activeTabId: tab.tabId,
+        nodes: [],
+        edges: [],
+        selectedNodeId: undefined,
+        isRunning: false,
+      };
     });
   },
   saveWorkflow: () => {
@@ -272,7 +350,57 @@ export const useCanvasStore = create<CanvasState>((set) => ({
         ...state.workflows.filter((workflow) => workflow.id !== id),
       ];
       writeSavedWorkflows(workflows);
-      return { workflowId: id, workflowName: name, workflows };
+      return {
+        ...syncActiveTab(state, { workflowId: id, workflowName: name }),
+        workflows,
+      };
+    });
+  },
+  openWorkflow: (id) => {
+    set((state) => {
+      const workflow = state.workflows.find((candidate) => candidate.id === id);
+      if (!workflow) return {};
+      const existing = state.openTabs.find((tab) => tab.workflowId === id);
+      if (existing) {
+        return {
+          workflowId: existing.workflowId,
+          activeTabId: existing.tabId,
+          ...applySchema(existing.schema),
+        };
+      }
+      const tab = createTab(workflow.schema, workflow.id);
+      return {
+        workflowId: workflow.id,
+        openTabs: [...state.openTabs, tab],
+        activeTabId: tab.tabId,
+        ...applySchema(workflow.schema),
+      };
+    });
+  },
+  switchTab: (tabId) => {
+    set((state) => {
+      const tab = state.openTabs.find((candidate) => candidate.tabId === tabId);
+      if (!tab) return {};
+      return {
+        workflowId: tab.workflowId,
+        activeTabId: tab.tabId,
+        ...applySchema(tab.schema),
+      };
+    });
+  },
+  closeTab: (tabId) => {
+    set((state) => {
+      if (state.openTabs.length <= 1) return {};
+      const openTabs = state.openTabs.filter((tab) => tab.tabId !== tabId);
+      if (state.activeTabId !== tabId) return { openTabs };
+
+      const nextTab = openTabs[openTabs.length - 1];
+      return {
+        openTabs,
+        activeTabId: nextTab.tabId,
+        workflowId: nextTab.workflowId,
+        ...applySchema(nextTab.schema),
+      };
     });
   },
   loadWorkflow: (id) => {
@@ -281,6 +409,7 @@ export const useCanvasStore = create<CanvasState>((set) => ({
       if (!workflow) return {};
       return {
         workflowId: workflow.id,
+        activeTabId: state.openTabs.find((tab) => tab.workflowId === workflow.id)?.tabId ?? state.activeTabId,
         ...applySchema(workflow.schema),
       };
     });
@@ -289,19 +418,34 @@ export const useCanvasStore = create<CanvasState>((set) => ({
     set((state) => {
       const workflows = state.workflows.filter((workflow) => workflow.id !== id);
       writeSavedWorkflows(workflows);
+      let openTabs = state.openTabs.filter((tab) => tab.workflowId !== id);
+
+      if (openTabs.length === 0) {
+        openTabs = [createTab(createEmptySchema())];
+      }
+
+      if (state.workflowId !== id) {
+        return { workflows, openTabs };
+      }
+
+      const nextTab = openTabs[openTabs.length - 1];
       return {
         workflows,
-        ...(state.workflowId === id
-          ? { workflowId: undefined, ...applySchema(createEmptySchema()) }
-          : {}),
+        openTabs,
+        activeTabId: nextTab.tabId,
+        workflowId: nextTab.workflowId,
+        ...applySchema(nextTab.schema),
       };
     });
   },
-  updateWorkflowName: (workflowName) => set({ workflowName }),
+  updateWorkflowName: (workflowName) => {
+    set((state) => syncActiveTab(state, { workflowName }));
+  },
   updateWorkflowContext: (context) => {
-    set((state) => ({
-      workflowContext: { ...state.workflowContext, ...context },
-    }));
+    set((state) => {
+      const workflowContext = { ...state.workflowContext, ...context };
+      return syncActiveTab(state, { workflowContext });
+    });
   },
   setSelectedNode: (selectedNodeId) => set({ selectedNodeId }),
   setIsRunning: (isRunning) => set({ isRunning }),

@@ -84,6 +84,13 @@ export interface SavedWorkflow {
   schema: CanvasSchema;
 }
 
+export interface OpenWorkflowTab {
+  tabId: string;
+  workflowId?: string;
+  name: string;
+  schema: CanvasSchema;
+}
+
 export interface CLIStreamEvent {
   nodeId: string;
   chunk: string;
