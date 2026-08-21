@@ -145,7 +145,42 @@ The Rust backend will provide a universal command runner for CLI agent nodes:
 
 ## Project Status
 
-KnotAgent is currently in the blueprint and foundation stage. The first milestone is to publish the project specification, then implement the desktop canvas and subprocess execution engine phase by phase.
+KnotAgent is currently in the foundation stage. The repository includes the first working desktop-app scaffold:
+
+- React + TypeScript + Vite app shell
+- React Flow visual canvas
+- CLI agent, local LLM, cloud API, input, and markdown output nodes
+- Zustand canvas store
+- DAG pipeline execution engine
+- Tauri v2 Rust command for spawning CLI agents and streaming `stdout` / `stderr`
+
+Rust is required to build or run the Tauri desktop wrapper locally.
+
+## Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the web frontend:
+
+```bash
+npm run dev
+```
+
+Build the frontend:
+
+```bash
+npm run build
+```
+
+Run the Tauri desktop app after installing Rust:
+
+```bash
+npm run tauri dev
+```
 
 ## License
 

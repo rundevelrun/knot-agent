@@ -145,7 +145,42 @@ Rust 백엔드는 CLI 에이전트 노드를 위한 범용 명령 실행기를 �
 
 ## 프로젝트 상태
 
-KnotAgent는 현재 블루프린트 및 기반 구축 단계입니다. 첫 번째 마일스톤은 프로젝트 스펙을 공개하고, 이후 데스크톱 캔버스와 서브프로세스 실행 엔진을 단계별로 구현하는 것입니다.
+KnotAgent는 현재 기반 구축 단계입니다. 저장소에는 첫 번째로 동작 가능한 데스크톱 앱 스캐폴드가 포함되어 있습니다.
+
+- React + TypeScript + Vite 앱 셸
+- React Flow 비주얼 캔버스
+- CLI agent, local LLM, cloud API, input, markdown output 노드
+- Zustand 캔버스 상태 저장소
+- DAG 파이프라인 실행 엔진
+- CLI 에이전트를 실행하고 `stdout` / `stderr`를 스트리밍하는 Tauri v2 Rust command
+
+Tauri 데스크톱 래퍼를 로컬에서 빌드하거나 실행하려면 Rust가 필요합니다.
+
+## 개발
+
+의존성 설치:
+
+```bash
+npm install
+```
+
+웹 프론트엔드 실행:
+
+```bash
+npm run dev
+```
+
+프론트엔드 빌드:
+
+```bash
+npm run build
+```
+
+Rust 설치 후 Tauri 데스크톱 앱 실행:
+
+```bash
+npm run tauri dev
+```
 
 ## 라이선스
 
