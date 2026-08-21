@@ -172,6 +172,10 @@ Custom CLI는 기존 CLI 노드의 command와 arguments를 inspector에서 바�
 
 여러 워크플로를 탭으로 동시에 열 수 있습니다. Run과 Save는 현재 활성 탭에만 적용됩니다.
 
+왼쪽 사이드바는 workflow tree입니다. 워크플로를 연 뒤 **Overview**에서 goal과 constraints를 편집하고, **Canvas**에서 실제 workflow 화면으로 돌아갑니다.
+
+캔버스 상단 **Add Node** 버튼으로 활성 workflow에 CLI agent나 core node를 추가합니다.
+
 기본 Antigravity 노드는 headless mode를 사용합니다.
 
 ```text

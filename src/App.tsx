@@ -8,7 +8,6 @@ import {
   type NodeMouseHandler,
 } from '@xyflow/react';
 import {
-  Bot,
   Braces,
   Cloud,
   FolderOpen,
@@ -18,11 +17,12 @@ import {
   Plus,
   Save,
   Server,
+  Settings,
   SquareTerminal,
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cliPresets, createCliNodeData, createCloudAPINodeData, createInputNodeData, createLocalLLMNodeData, createMarkdownOutputNodeData } from './data/nodePresets';
 import { rolePresets } from './data/rolePresets';
 import { executeMultiAgentPipeline } from './engine/pipeline';
@@ -43,10 +43,15 @@ const nodeTypes = {
   markdown_output: MarkdownOutputNode,
 };
 
+type InspectorMode = 'workflow' | 'node' | undefined;
+
 export function App() {
   useCliStream();
+  const [inspectorMode, setInspectorMode] = useState<InspectorMode>();
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
 
   const {
+    workflowId,
     nodes,
     edges,
     workflowName,
@@ -66,8 +71,6 @@ export function App() {
     switchTab,
     closeTab,
     deleteWorkflow,
-    updateWorkflowName,
-    updateWorkflowContext,
     updateNodeData,
     setSelectedNode,
     setIsRunning,
@@ -80,6 +83,7 @@ export function App() {
 
   const onNodeClick: NodeMouseHandler<KnotNode> = (_, node) => {
     setSelectedNode(node.id);
+    setInspectorMode('node');
   };
 
   async function runPipeline() {
@@ -120,10 +124,11 @@ export function App() {
     if (type === 'local_llm') addNode(type, createLocalLLMNodeData());
     if (type === 'cloud_api') addNode(type, createCloudAPINodeData());
     if (type === 'markdown_output') addNode(type, createMarkdownOutputNodeData());
+    setAddMenuOpen(false);
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${inspectorMode ? '' : 'inspector-closed'}`}>
       <aside className="left-rail">
         <div className="brand">
           <div className="brand-mark">
@@ -135,72 +140,46 @@ export function App() {
           </div>
         </div>
 
-        <section className="palette-section">
-          <h2>Workflow</h2>
-          <label className="compact-field">
-            <span>Name</span>
-            <input value={workflowName} onChange={(event) => updateWorkflowName(event.target.value)} />
-          </label>
-          <label className="compact-field">
-            <span>Goal</span>
-            <textarea
-              rows={3}
-              value={workflowContext.goal}
-              onChange={(event) => updateWorkflowContext({ goal: event.target.value })}
-            />
-          </label>
-          <label className="compact-field">
-            <span>Constraints</span>
-            <textarea
-              rows={3}
-              value={workflowContext.constraints}
-              onChange={(event) => updateWorkflowContext({ constraints: event.target.value })}
-            />
-          </label>
-        </section>
-
-        <section className="palette-section">
-          <h2>Saved</h2>
+        <section className="tree-section">
+          <div className="tree-header">
+            <h2>Workflows</h2>
+            <button className="tree-action" aria-label="New workflow" disabled={isRunning} onClick={newCanvas}>
+              <Plus size={14} />
+            </button>
+          </div>
           <div className="workflow-list">
             {workflows.length === 0 && <div className="saved-empty">No saved workflows</div>}
             {workflows.map((workflow) => (
-              <div className="workflow-item" key={workflow.id}>
-                <button className="workflow-load" onClick={() => openWorkflow(workflow.id)}>
-                  <FolderOpen size={15} />
-                  <span>{workflow.name}</span>
-                </button>
-                <button className="icon-button" aria-label={`Delete ${workflow.name}`} onClick={() => deleteWorkflow(workflow.id)}>
-                  <Trash2 size={14} />
-                </button>
+              <div className="tree-workflow" key={workflow.id}>
+                <div className="workflow-item">
+                  <button
+                    className={`workflow-load ${workflow.id === workflowId ? 'active' : ''}`}
+                    onClick={() => {
+                      openWorkflow(workflow.id);
+                      setInspectorMode(undefined);
+                    }}
+                  >
+                    <FolderOpen size={15} />
+                    <span>{workflow.name}</span>
+                  </button>
+                  <button className="icon-button" aria-label={`Delete ${workflow.name}`} onClick={() => deleteWorkflow(workflow.id)}>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                {workflow.id === workflowId && (
+                  <div className="tree-children">
+                    <button className="tree-child" onClick={() => setInspectorMode('workflow')}>
+                      <Settings size={13} />
+                      Overview
+                    </button>
+                    <button className="tree-child" onClick={() => setInspectorMode(undefined)}>
+                      <GitBranch size={13} />
+                      Canvas
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
-          </div>
-        </section>
-
-        <section className="palette-section">
-          <h2>CLI Agents</h2>
-          <div className="palette-list">
-            {cliPresets.map((preset) => (
-              <button
-                key={preset.agentType}
-                className="palette-item"
-                onClick={() => addNode('cli_agent', createCliNodeData(preset))}
-              >
-                <SquareTerminal size={16} />
-                <span>{preset.label}</span>
-                <Plus size={14} />
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="palette-section">
-          <h2>Core Nodes</h2>
-          <div className="palette-list">
-            <PaletteButton icon={<FileText size={16} />} label="Input" onClick={() => addPresetNode('input')} />
-            <PaletteButton icon={<Server size={16} />} label="Local LLM" onClick={() => addPresetNode('local_llm')} />
-            <PaletteButton icon={<Cloud size={16} />} label="Cloud API" onClick={() => addPresetNode('cloud_api')} />
-            <PaletteButton icon={<Braces size={16} />} label="Markdown Output" onClick={() => addPresetNode('markdown_output')} />
           </div>
         </section>
       </aside>
@@ -231,6 +210,46 @@ export function App() {
             ))}
           </div>
           <div className="tab-actions">
+            <div className="add-menu-wrap">
+              <button className="secondary-button" onClick={() => setAddMenuOpen((open) => !open)}>
+                <Plus size={15} />
+                Add Node
+              </button>
+              {addMenuOpen && (
+                <div className="add-menu">
+                  <div className="add-menu-section">CLI Agents</div>
+                  {cliPresets.map((preset) => (
+                    <button
+                      key={preset.agentType}
+                      onClick={() => {
+                        addNode('cli_agent', createCliNodeData(preset));
+                        setAddMenuOpen(false);
+                      }}
+                    >
+                      <SquareTerminal size={15} />
+                      {preset.label}
+                    </button>
+                  ))}
+                  <div className="add-menu-section">Core Nodes</div>
+                  <button onClick={() => addPresetNode('input')}>
+                    <FileText size={15} />
+                    Input
+                  </button>
+                  <button onClick={() => addPresetNode('local_llm')}>
+                    <Server size={15} />
+                    Local LLM
+                  </button>
+                  <button onClick={() => addPresetNode('cloud_api')}>
+                    <Cloud size={15} />
+                    Cloud API
+                  </button>
+                  <button onClick={() => addPresetNode('markdown_output')}>
+                    <Braces size={15} />
+                    Markdown Output
+                  </button>
+                </div>
+              )}
+            </div>
             <button className="secondary-button" disabled={isRunning} onClick={saveWorkflow}>
               <Save size={15} />
               Save
@@ -255,7 +274,11 @@ export function App() {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeClick={onNodeClick}
-            onPaneClick={() => setSelectedNode(undefined)}
+            onPaneClick={() => {
+              setSelectedNode(undefined);
+              setInspectorMode(undefined);
+              setAddMenuOpen(false);
+            }}
             connectionLineType={ConnectionLineType.SmoothStep}
             defaultEdgeOptions={{ animated: true }}
             deleteKeyCode={['Delete', 'Backspace']}
@@ -268,51 +291,86 @@ export function App() {
         </div>
       </main>
 
-      <Inspector selectedNode={selectedNode} />
+      <Inspector
+        mode={inspectorMode}
+        selectedNode={selectedNode}
+        onClose={() => {
+          setSelectedNode(undefined);
+          setInspectorMode(undefined);
+        }}
+      />
     </div>
   );
 }
 
-function PaletteButton({
-  icon,
-  label,
-  onClick,
+function Inspector({
+  mode,
+  selectedNode,
+  onClose,
 }: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
+  mode: InspectorMode;
+  selectedNode?: KnotNode;
+  onClose: () => void;
 }) {
-  return (
-    <button className="palette-item" onClick={onClick}>
-      {icon}
-      <span>{label}</span>
-      <Plus size={14} />
-    </button>
-  );
-}
-
-function Inspector({ selectedNode }: { selectedNode?: KnotNode }) {
   const updateNodeData = useCanvasStore((state) => state.updateNodeData);
   const deleteNode = useCanvasStore((state) => state.deleteNode);
+  const workflowName = useCanvasStore((state) => state.workflowName);
+  const workflowContext = useCanvasStore((state) => state.workflowContext);
+  const updateWorkflowName = useCanvasStore((state) => state.updateWorkflowName);
+  const updateWorkflowContext = useCanvasStore((state) => state.updateWorkflowContext);
 
-  if (!selectedNode) {
+  if (!mode) {
+    return null;
+  }
+
+  if (mode === 'workflow') {
     return (
       <aside className="inspector">
-        <div className="empty-state">
-          <Bot size={22} />
-          <h2>Select a node</h2>
-          <p>Node settings and live output appear here.</p>
+        <div className="inspector-header">
+          <span className="node-kind">workflow</span>
+          <button className="close-button" onClick={onClose} aria-label="Close inspector">
+            <X size={15} />
+          </button>
         </div>
+        <h2>{workflowName}</h2>
+
+        <label className="field">
+          <span>Name</span>
+          <input value={workflowName} onChange={(event) => updateWorkflowName(event.target.value)} />
+        </label>
+        <label className="field">
+          <span>Goal</span>
+          <textarea
+            rows={5}
+            value={workflowContext.goal}
+            onChange={(event) => updateWorkflowContext({ goal: event.target.value })}
+          />
+        </label>
+        <label className="field">
+          <span>Constraints</span>
+          <textarea
+            rows={7}
+            value={workflowContext.constraints}
+            onChange={(event) => updateWorkflowContext({ constraints: event.target.value })}
+          />
+        </label>
       </aside>
     );
+  }
+
+  if (!selectedNode) {
+    return null;
   }
 
   return (
     <aside className="inspector">
       <div className="inspector-header">
         <span className="node-kind">{selectedNode.type}</span>
-        <h2>{selectedNode.data.label}</h2>
+        <button className="close-button" onClick={onClose} aria-label="Close inspector">
+          <X size={15} />
+        </button>
       </div>
+      <h2>{selectedNode.data.label}</h2>
 
       <button className="danger-button" onClick={() => deleteNode(selectedNode.id)}>
         <Trash2 size={15} />

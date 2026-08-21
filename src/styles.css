@@ -31,6 +31,10 @@ textarea {
   overflow: hidden;
 }
 
+.app-shell.inspector-closed {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
 .left-rail,
 .inspector {
   border-color: #27272a;
@@ -146,18 +150,43 @@ textarea {
   background: #202024;
 }
 
-.palette-section {
+.palette-section,
+.tree-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.palette-section h2 {
+.palette-section h2,
+.tree-section h2 {
   color: #a1a1aa;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
+}
+
+.tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tree-action {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  color: #d4d4d8;
+  background: #18181b;
+  cursor: pointer;
+}
+
+.tree-action:hover {
+  border-color: #71717a;
+  background: #202024;
 }
 
 .palette-list {
@@ -213,7 +242,12 @@ textarea {
 
 .workflow-list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
+}
+
+.tree-workflow {
+  display: grid;
+  gap: 4px;
 }
 
 .workflow-item {
@@ -257,6 +291,36 @@ textarea {
 .icon-button:hover {
   border-color: #71717a;
   background: #202024;
+}
+
+.workflow-load.active {
+  border-color: #3f3f46;
+  background: #202024;
+}
+
+.tree-children {
+  display: grid;
+  gap: 2px;
+  padding-left: 18px;
+}
+
+.tree-child {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: #a1a1aa;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+}
+
+.tree-child:hover {
+  color: #f4f4f5;
+  background: #18181b;
 }
 
 .saved-empty {
@@ -337,8 +401,53 @@ textarea {
 }
 
 .tab-actions {
+  position: relative;
   display: flex;
   gap: 8px;
+}
+
+.add-menu-wrap {
+  position: relative;
+}
+
+.add-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: 220px;
+  overflow: hidden;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  padding: 6px;
+  background: #111113;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+}
+
+.add-menu-section {
+  padding: 7px 8px 5px;
+  color: #71717a;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.add-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px;
+  color: #e4e4e7;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.add-menu button:hover {
+  background: #202024;
 }
 
 .canvas-help {
@@ -520,8 +629,10 @@ textarea {
 }
 
 .inspector-header {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .node-kind {
@@ -535,8 +646,26 @@ textarea {
 }
 
 .inspector h2 {
+  margin: 0;
   font-size: 18px;
   line-height: 1.25;
+}
+
+.close-button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  color: #a1a1aa;
+  background: #18181b;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  color: #f4f4f5;
+  background: #202024;
 }
 
 .field {

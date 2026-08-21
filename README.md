@@ -172,6 +172,10 @@ Use **Save** to store the current workflow locally. Saved workflows appear in th
 
 Multiple workflows can be open at the same time as tabs. Run and Save operate on the active tab.
 
+The left sidebar is a workflow tree. Open a workflow, choose **Overview** to edit its goal and constraints, or choose **Canvas** to return to the visual workflow.
+
+Use the canvas toolbar **Add Node** button to add CLI agents or core nodes to the active workflow.
+
 The default Antigravity node uses headless mode:
 
 ```text
