@@ -156,6 +156,48 @@ KnotAgent는 현재 기반 구축 단계입니다. 저장소에는 첫 번째로
 
 Tauri 데스크톱 래퍼를 로컬에서 빌드하거나 실행하려면 Rust가 필요합니다.
 
+## 개발 전제 조건
+
+모든 플랫폼에서 필요:
+
+- Node.js 22 이상
+- npm 10 이상
+- Git
+
+Tauri 데스크톱 개발에 필요:
+
+- `rustup`으로 설치한 Rust와 Cargo
+- 플랫폼별 네이티브 빌드 의존성
+
+### Windows
+
+Rust 설치:
+
+```powershell
+winget install Rustlang.Rustup
+```
+
+Microsoft Visual Studio Build Tools 설치:
+
+```powershell
+winget install Microsoft.VisualStudio.2022.BuildTools
+```
+
+Build Tools 설치 화면이 열리면 다음 워크로드를 선택하세요.
+
+```text
+Desktop development with C++
+```
+
+PowerShell을 닫았다가 다시 연 뒤 확인:
+
+```powershell
+cargo --version
+rustc --version
+```
+
+`npm install`은 Visual C++ Build Tools를 설치하지 않습니다. 이 도구는 로컬 Tauri 개발과 빌드에만 필요하며, 미리 빌드된 KnotAgent 릴리스를 설치하는 최종 사용자에게는 필요하지 않습니다.
+
 ## 개발
 
 의존성 설치:
@@ -176,7 +218,7 @@ npm run dev
 npm run build
 ```
 
-Rust 설치 후 Tauri 데스크톱 앱 실행:
+Rust와 네이티브 빌드 전제 조건 설치 후 Tauri 데스크톱 앱 실행:
 
 ```bash
 npm run tauri dev

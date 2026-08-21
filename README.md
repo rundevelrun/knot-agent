@@ -156,6 +156,48 @@ KnotAgent is currently in the foundation stage. The repository includes the firs
 
 Rust is required to build or run the Tauri desktop wrapper locally.
 
+## Development Prerequisites
+
+Required for all platforms:
+
+- Node.js 22 or later
+- npm 10 or later
+- Git
+
+Required for Tauri desktop development:
+
+- Rust and Cargo through `rustup`
+- Platform-specific native build dependencies
+
+### Windows
+
+Install Rust:
+
+```powershell
+winget install Rustlang.Rustup
+```
+
+Install Microsoft Visual Studio Build Tools:
+
+```powershell
+winget install Microsoft.VisualStudio.2022.BuildTools
+```
+
+When the Build Tools installer opens, select:
+
+```text
+Desktop development with C++
+```
+
+Close and reopen PowerShell, then verify:
+
+```powershell
+cargo --version
+rustc --version
+```
+
+`npm install` does not install Visual C++ Build Tools. The tools are only needed for local Tauri development and builds, not for end users installing a prebuilt KnotAgent release.
+
 ## Development
 
 Install dependencies:
@@ -176,7 +218,7 @@ Build the frontend:
 npm run build
 ```
 
-Run the Tauri desktop app after installing Rust:
+Run the Tauri desktop app after installing Rust and native build prerequisites:
 
 ```bash
 npm run tauri dev
