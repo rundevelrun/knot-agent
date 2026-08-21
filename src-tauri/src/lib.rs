@@ -5,6 +5,9 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[cfg(windows)]
+use std::path::Path;
+
 use serde::Serialize;
 use tauri::{Emitter, Window};
 
@@ -40,17 +43,7 @@ fn run_agent_cli_blocking(
     cwd: Option<String>,
     timeout_seconds: Option<u64>,
 ) -> Result<String, String> {
-    let mut cmd = Command::new(&command);
-    cmd.args(&args)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-
-    if let Some(dir) = cwd.as_deref().filter(|dir| !dir.is_empty()) {
-        cmd.current_dir(dir);
-    }
-
-    let mut child = cmd
-        .spawn()
+    let mut child = spawn_cli_process(&command, &args, cwd.as_deref())
         .map_err(|error| format!("Failed to spawn CLI agent '{}': {}", command, error))?;
 
     let stdout = child
@@ -122,6 +115,58 @@ fn run_agent_cli_blocking(
     }
 
     Ok(full_output)
+}
+
+fn spawn_cli_process(
+    command: &str,
+    args: &[String],
+    cwd: Option<&str>,
+) -> std::io::Result<std::process::Child> {
+    let direct_result = build_direct_command(command, args, cwd).spawn();
+
+    #[cfg(windows)]
+    {
+        if direct_result
+            .as_ref()
+            .is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
+            && !command_has_path(command)
+        {
+            return build_windows_cmd_command(command, args, cwd).spawn();
+        }
+    }
+
+    direct_result
+}
+
+fn build_direct_command(command: &str, args: &[String], cwd: Option<&str>) -> Command {
+    let mut cmd = Command::new(command);
+    cmd.args(args).stdout(Stdio::piped()).stderr(Stdio::piped());
+
+    if let Some(dir) = cwd.filter(|dir| !dir.is_empty()) {
+        cmd.current_dir(dir);
+    }
+
+    cmd
+}
+
+#[cfg(windows)]
+fn build_windows_cmd_command(command: &str, args: &[String], cwd: Option<&str>) -> Command {
+    let mut cmd = Command::new("cmd");
+    cmd.args(["/D", "/S", "/C", command])
+        .args(args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    if let Some(dir) = cwd.filter(|dir| !dir.is_empty()) {
+        cmd.current_dir(dir);
+    }
+
+    cmd
+}
+
+#[cfg(windows)]
+fn command_has_path(command: &str) -> bool {
+    Path::new(command).components().count() > 1
 }
 
 fn read_stream<R: std::io::Read>(
