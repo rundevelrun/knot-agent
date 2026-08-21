@@ -8,22 +8,19 @@ import {
   type NodeMouseHandler,
 } from '@xyflow/react';
 import {
-  Braces,
-  Cloud,
   FolderOpen,
   FileText,
   GitBranch,
   Play,
   Plus,
   Save,
-  Server,
   Settings,
   SquareTerminal,
   Trash2,
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { cliPresets, createCliNodeData, createCloudAPINodeData, createInputNodeData, createLocalLLMNodeData, createMarkdownOutputNodeData } from './data/nodePresets';
+import { cliPresets, createCliNodeData, createInputNodeData } from './data/nodePresets';
 import { rolePresets } from './data/rolePresets';
 import { executeMultiAgentPipeline } from './engine/pipeline';
 import { useCliStream } from './hooks/useCliStream';
@@ -44,7 +41,7 @@ const nodeTypes = {
 };
 
 type InspectorMode = 'workflow' | 'node' | undefined;
-type CoreNodeType = Exclude<NodeType, 'cli_agent'>;
+type VisibleCoreNodeType = Extract<NodeType, 'input'>;
 
 export function App() {
   useCliStream();
@@ -121,13 +118,10 @@ export function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isRunning, newCanvas, saveWorkflow]);
 
-  function addPresetNode(type: CoreNodeType) {
+  function addPresetNode(type: VisibleCoreNodeType) {
     const dataByType = {
       input: createInputNodeData,
-      local_llm: createLocalLLMNodeData,
-      cloud_api: createCloudAPINodeData,
-      markdown_output: createMarkdownOutputNodeData,
-    } satisfies Record<CoreNodeType, () => KnotNode['data']>;
+    } satisfies Record<VisibleCoreNodeType, () => KnotNode['data']>;
     const createData = dataByType[type];
     if (!createData) return;
 
@@ -253,18 +247,6 @@ export function App() {
                   <button onClick={() => addPresetNode('input')}>
                     <FileText size={15} />
                     Input
-                  </button>
-                  <button onClick={() => addPresetNode('local_llm')}>
-                    <Server size={15} />
-                    Local LLM
-                  </button>
-                  <button onClick={() => addPresetNode('cloud_api')}>
-                    <Cloud size={15} />
-                    Cloud API
-                  </button>
-                  <button onClick={() => addPresetNode('markdown_output')}>
-                    <Braces size={15} />
-                    Markdown Output
                   </button>
                 </div>
               )}

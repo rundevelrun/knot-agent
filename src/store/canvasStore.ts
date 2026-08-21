@@ -119,7 +119,14 @@ function createEmptySchema(): CanvasSchema {
     version: '0.1.0',
     name: 'Untitled Workflow',
     context: createDefaultContext(),
-    nodes: [],
+    nodes: [
+      {
+        id: `input-${crypto.randomUUID()}`,
+        type: 'input',
+        position: { x: 80, y: 140 },
+        data: createInputNodeData(),
+      },
+    ],
     edges: [],
   };
 }
@@ -359,8 +366,8 @@ export const useCanvasStore = create<CanvasState>((set) => ({
         workflowContext: schema.context || createDefaultContext(),
         openTabs: [...state.openTabs, tab],
         activeTabId: tab.tabId,
-        nodes: [],
-        edges: [],
+        nodes: schema.nodes as KnotNode[],
+        edges: schema.edges,
         selectedNodeId: undefined,
         isRunning: false,
       };

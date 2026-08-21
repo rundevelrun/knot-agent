@@ -174,7 +174,7 @@ Custom CLI는 기존 CLI 노드의 command와 arguments를 inspector에서 바�
 
 왼쪽 사이드바는 workflow tree입니다. 워크플로를 연 뒤 **Overview**에서 goal과 constraints를 편집하고, **Canvas**에서 실제 workflow 화면으로 돌아갑니다.
 
-캔버스 상단 **Add Node** 버튼으로 활성 workflow에 CLI agent나 core node를 추가합니다. 노드가 선택된 상태에서는 버튼이 **Add Next**로 바뀌고, 새 노드를 선택 노드 뒤에 자동으로 연결합니다.
+캔버스 상단 **Add Node** 버튼으로 활성 workflow에 CLI agent 또는 Input 노드를 추가합니다. 노드가 선택된 상태에서는 버튼이 **Add Next**로 바뀌고, 새 노드를 선택 노드 뒤에 자동으로 연결합니다.
 
 기본 Antigravity 노드는 headless mode를 사용합니다.
 
@@ -203,7 +203,7 @@ Arguments:
 - `Ctrl/Cmd + N`: 새 빈 workflow tab 열기
 - `Delete` / `Backspace`: 선택한 노드 또는 엣지 삭제
 
-Local LLM과 Cloud API 노드는 현재 연결 가능한 placeholder입니다. 캔버스에서 데이터가 어떻게 흐를지 보여주지만, 실제 Ollama / LM Studio / OpenAI / Anthropic 호출은 아직 로드맵 단계입니다.
+Local LLM, Cloud API, Markdown Output 노드는 기존 workflow와 예제를 위해 내부적으로는 남아 있습니다. 하지만 완전히 구현되기 전까지 Core Nodes 추가 메뉴에는 Input만 노출합니다.
 
 Markdown Output은 heading, list, inline code, bold text, fenced code block 같은 안전한 subset의 markdown을 렌더링합니다.
 
